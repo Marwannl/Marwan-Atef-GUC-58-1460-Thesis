@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Quiver Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root {
+  --bg:#0a1212;--surface:#0f1c1c;--sidebar:#0c1818;
+  --surface-2:#162222;--surface-3:#1e2e2e;
+  --accent:#009191;--accent-hover:#00b4b4;
+  --accent-glow:rgba(0,145,145,0.28);--accent-dim:rgba(0,145,145,0.14);
+  --secondary:#00c4dc;
+  --positive:#34d399;--negative:#f87171;--warning:#fbbf24;
+  --text:#e8f0f0;--text-2:#8ab0b0;--muted:#4a6868;
+  --border:#1e3030;--border-2:#284040;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.5);--shadow-md:0 4px 20px rgba(0,0,0,.6);
+  --radius:8px;--radius-lg:12px;
+  --sp-width:420px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* ── INTRO ── */
+#intro{position:fixed;inset:0;background:#0a1212;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .65s ease}
+.intro-logo-row{display:flex;align-items:center;gap:10px}
+.intro-logo-text{font-size:44px;font-weight:800;color:var(--text);letter-spacing:-1.5px}
+.intro-sub{margin-top:10px;font-size:14px;color:var(--muted);letter-spacing:.3px}
+.intro-rule{width:48px;height:2px;background:linear-gradient(90deg,#009191,#00c4dc);border-radius:2px;margin:18px auto 0}
+
+/* ── SHELL ── */
+#shell{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .5s ease}
+
+/* TOP NAV */
+.top-nav{display:flex;align-items:center;padding:0 16px;height:52px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;z-index:10}
+.top-nav-logo{display:flex;align-items:center;gap:7px}
+.nav-logo-text{font-weight:800;font-size:15px;color:var(--text);letter-spacing:-.3px}
+.top-nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.nav-clock{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.sa-btn{display:flex;align-items:center;gap:5px;padding:5px 14px;background:rgba(0,145,145,.08);border:1px solid rgba(0,145,145,.4);border-radius:20px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:#7dd3c8;cursor:pointer;transition:background .15s}
+.sa-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sa-btn .dot{width:7px;height:7px;background:#00c4dc;border-radius:50%;flex-shrink:0}
+.sa-btn.active .dot{background:rgba(255,255,255,.8)}
+.theme-btn{width:32px;height:32px;background:var(--surface-2);border:1px solid var(--border);border-radius:50%;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* APP LAYOUT */
+#app-layout{display:flex;flex:1;overflow:hidden;transition:padding-right .3s cubic-bezier(.16,1,.3,1)}
+#app-layout.sp-open{padding-right:var(--sp-width)}
+
+/* SIDEBAR */
+.sidebar{width:160px;min-width:160px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100%}
+.sb-body{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:10px 8px 0}
+.new-chat-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:var(--accent);border:none;border-radius:var(--radius);color:#fff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;padding:9px 12px;cursor:pointer;margin-bottom:10px}
+.chat-list{flex:1;overflow-y:auto}
+.chat-item{display:flex;align-items:center;width:100%;background:none;border:none;border-radius:var(--radius);color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;padding:7px 8px;cursor:pointer;text-align:left;gap:6px;margin-bottom:2px}
+.chat-item.active{background:rgba(0,145,145,.08);color:var(--accent)}
+.chat-item-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticker-badge{flex-shrink:0;background:var(--accent-dim);border:1px solid rgba(0,145,145,.3);color:var(--accent);border-radius:4px;padding:1px 5px;font-size:10px;font-weight:800;letter-spacing:.05em}
+.sb-footer{padding:10px 12px;border-top:1px solid var(--border)}
+.sb-user-row{display:flex;align-items:center;gap:7px}
+.sb-avatar{width:24px;height:24px;background:rgba(0,145,145,.15);border-radius:50%;flex-shrink:0;border:1px solid rgba(0,145,145,.2)}
+.sb-username{flex:1;font-size:12px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-btns{display:flex;align-items:center;gap:4px}
+.logout-btn{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer}
+.gear-btn{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 4px;border-radius:4px}
+
+/* CHAT MAIN */
+.chat-main{flex:1;display:flex;flex-direction:column;height:100%;min-width:0;background:var(--bg);position:relative}
+.model-bar{display:flex;justify-content:center;align-items:center;padding:10px 20px 0;flex-shrink:0;gap:8px}
+.model-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--text-2);font-family:'Inter',sans-serif;font-size:12px;padding:5px 14px;display:flex;align-items:center;gap:5px}
+.model-arrow{color:var(--muted);font-size:10px}
+.ticker-ctx-badge{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(0,145,145,.3);border-radius:6px;padding:4px 10px;display:none}
+
+/* MESSAGES */
+.msgs{flex:1;overflow-y:auto;padding:20px 20px 16px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:48rem;margin:0 auto;align-self:center;min-width:0}
+.msgs::-webkit-scrollbar{width:4px}
+.msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* EMPTY STATE — exact */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:8px}
+.es-logo{font-size:56px;font-weight:800;color:var(--accent);letter-spacing:-2.5px;line-height:1}
+.es-sub{font-size:14px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;max-width:520px}
+.chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--text-2);font-family:'Inter',sans-serif;font-size:13px;padding:7px 16px;cursor:pointer}
+
+/* BUBBLES */
+@keyframes bIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.bubble{max-width:min(75%,680px);padding:10px 14px;line-height:1.6;font-size:14px;word-break:break-word;animation:bIn .2s ease both}
+.bubble.user{align-self:flex-end;background:#009191;color:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 2px 10px rgba(0,145,145,.25)}
+.bubble.bot{align-self:flex-start;background:var(--surface);color:var(--text);border-radius:4px 16px 16px 16px;border:1px solid var(--border);box-shadow:var(--shadow-sm);max-width:min(82%,680px)}
+.bot-wrap{align-self:flex-start;display:flex;gap:8px;align-items:flex-start;max-width:100%;animation:bIn .2s ease both}
+.bot-avatar{width:28px;height:28px;background:linear-gradient(135deg,#009191,#00c4dc);border-radius:50%;flex-shrink:0;margin-top:2px}
+.typing-ind{align-self:flex-start;font-size:14px;color:var(--muted);font-style:italic;padding:4px 0;animation:bIn .2s ease both}
+
+/* TICKER CHIP */
+.tdc{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:5px 10px 5px 12px;background:rgba(0,145,145,.1);border:1px solid rgba(0,145,145,.3);border-radius:20px;width:fit-content;opacity:0;transition:opacity .4s}
+.tdc.show{opacity:1}
+.tdc-dot{width:7px;height:7px;background:#00c4dc;border-radius:50%;animation:pd 1.5s infinite}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.tdc-label{font-size:11px;color:#7dd3c8;font-weight:500}
+.tdc-btn{background:#009191;border:none;border-radius:8px;color:#fff;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;padding:3px 8px;cursor:pointer;margin-left:4px}
+
+/* INPUT AREA */
+.input-area{padding:8px 20px 14px;background:var(--bg);display:flex;flex-direction:column;gap:6px;max-width:48rem;width:100%;align-self:center}
+#pcb{display:none;align-items:center;gap:6px;padding:4px 10px 0;font-size:11px;color:var(--accent)}
+#pcb.show{display:flex}
+.pcb-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pd 1.5s infinite}
+.input-box{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:7px 10px;box-shadow:var(--shadow-sm);transition:border-color .15s,box-shadow .15s}
+.input-box.focused{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.attach-btn{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--muted);width:34px;height:34px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fake-input{flex:1;font-size:14px;color:var(--text);font-family:'Inter',sans-serif;line-height:1.5;min-height:26px;white-space:pre}
+.fake-input:empty::before{content:'Ask anything...';color:var(--muted)}
+.send-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.send-btn.show{opacity:1}
+.input-hint{text-align:center;font-size:10px;color:var(--muted)}
+.cursor-blink{display:inline-block;width:2px;height:14px;background:var(--accent);border-radius:1px;margin-left:1px;animation:bl .85s step-end infinite;vertical-align:middle}
+@keyframes bl{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* STOCK PANEL */
+.stock-panel{position:fixed;top:52px;right:0;bottom:0;width:var(--sp-width);background:var(--surface);border-left:1px solid var(--border);box-shadow:-8px 0 32px rgba(0,145,145,.1);z-index:51;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.stock-panel.open{transform:translateX(0)}
+
+/* Panel header */
+.sp-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;gap:12px}
+.sp-hd-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sp-ticker-row{display:flex;align-items:baseline;gap:8px}
+.sp-ticker{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.5px}
+.sp-company{font-size:12px;color:var(--muted)}
+.sp-price-row{display:flex;align-items:center;gap:8px;margin-top:3px}
+.sp-price{font-size:20px;font-weight:700;color:var(--text)}
+.sp-chg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.sp-chg.up{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:#34d399}
+.sp-chg.down{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171}
+.sp-live{font-size:10px;font-weight:500;color:var(--muted);display:inline-flex;align-items:center;gap:4px;opacity:0;transition:opacity .5s}
+.sp-live.show{opacity:1}
+.sp-live::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;animation:livePulse 2s ease-in-out infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sp-hd-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sp-ticker-wrap{display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px}
+.sp-ticker-lbl{font-size:11px;color:var(--muted)}
+.sp-ticker-inp{background:none;border:none;outline:none;font-family:'Inter',monospace;font-size:12px;font-weight:700;color:var(--accent);width:50px;text-transform:uppercase;letter-spacing:.05em}
+.sp-close{width:30px;height:30px;background:var(--surface-2);border:1px solid var(--border);border-radius:50%;color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* Panel body */
+.sp-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.sp-body::-webkit-scrollbar{width:5px}
+.sp-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.sp-placeholder{flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
+.sp-spin{display:flex;align-items:center;justify-content:center;gap:10px;flex:1;font-size:13px;color:var(--muted)}
+.ring{width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Panel cards */
+.sp-chart-card,.sp-expl-card,.sp-risk-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm)}
+.sp-card-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.sp-card-lbl.teal{color:#7dd3c8}
+.sp-expl-card{background:rgba(0,145,145,.08);border-color:rgba(0,145,145,.2)}
+.sp-expl-text{font-size:13px;color:var(--text-2);line-height:1.75}
+.sp-chart-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sp-period-bar{display:flex;gap:3px}
+.sp-pb{background:var(--surface-2);border:none;border-radius:10px;color:var(--muted);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;padding:3px 9px;cursor:pointer}
+.sp-pb.active{background:var(--accent);color:#fff}
+.sp-chart-container{height:200px;border-radius:8px;overflow:hidden;background:var(--bg)}
+.sp-metrics-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.sp-mc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.sp-mc-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.sp-mc-val{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px}
+.sp-mc-val.up{color:var(--positive)}
+.sp-mc-val.down{color:var(--negative)}
+.sp-mc-val.acc{color:var(--accent)}
+.sp-mc-desc{font-size:10px;color:var(--muted);line-height:1.4}
+.sp-risk-title{font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.sp-risk-desc{font-size:11px;color:var(--muted);margin-bottom:10px}
+.sp-risk-bar-bg{width:100%;height:10px;background:linear-gradient(90deg,#16a34a 0%,#d97706 50%,#dc2626 100%);border-radius:6px;position:relative;margin-bottom:4px}
+.sp-risk-marker{position:absolute;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;background:#232838;border:2px solid #e8eaf0;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.sp-risk-lbl-row{display:flex;justify-content:space-between;font-size:10px;font-weight:500}
+.sp-risk-summary{font-size:12px;font-weight:600;margin-top:8px;margin-bottom:3px}
+.sp-risk-median{font-size:11px;color:var(--muted)}
+
+/* PROGRESS + REPLAY */
+#prog{position:fixed;bottom:0;left:0;width:0;height:3px;background:linear-gradient(90deg,#009191,#00c4dc);z-index:300}
+#replay{position:fixed;bottom:16px;right:16px;background:#009191;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;opacity:0;transition:opacity .4s;z-index:400}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-logo-row">
+    <svg width="44" height="44" viewBox="0 0 34 34" fill="none">
+      <polyline points="5,7 16,17 5,27" stroke="#0d9488" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="16,7 27,17 16,27" stroke="#7dd3c8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="intro-logo-text">Quiver</div>
+  </div>
+  <div class="intro-sub">AI-powered stock analysis</div>
+  <div class="intro-rule"></div>
+</div>
+
+<div id="prog"></div>
+<button id="replay" onclick="startDemo()">↺ Replay</button>
+
+<!-- SHELL -->
+<div id="shell">
+  <!-- TOP NAV -->
+  <nav class="top-nav">
+    <div class="top-nav-logo">
+      <svg width="26" height="26" viewBox="0 0 34 34" fill="none">
+        <polyline points="5,7 16,17 5,27" stroke="#0d9488" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="16,7 27,17 16,27" stroke="#7dd3c8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="nav-logo-text">Quiver</span>
+    </div>
+    <div class="top-nav-right">
+      <span class="nav-clock" id="nav-clock"></span>
+      <button class="sa-btn" id="sa-btn"><span class="dot"></span>Stock Analysis</button>
+      <button class="theme-btn">★</button>
+    </div>
+  </nav>
+
+  <!-- APP LAYOUT -->
+  <div id="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-body">
+        <button class="new-chat-btn">+ New Chat</button>
+        <div class="chat-list">
+          <button class="chat-item active">
+            <span class="chat-item-title">New Chat</span>
+          </button>
+          <button class="chat-item">
+            <span class="chat-item-title">GOOGL</span>
+          </button>
+        </div>
+      </div>
+      <div class="sb-footer">
+        <div class="sb-user-row">
+          <div class="sb-avatar"></div>
+          <span class="sb-username">ma...</span>
+          <div class="sb-btns">
+            <button class="logout-btn">Sign out</button>
+            <button class="gear-btn">⚙</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CHAT MAIN -->
+    <main class="chat-main">
+      <div class="model-bar">
+        <div class="model-pill">Qwen 3 80B <span class="model-arrow">▾</span></div>
+        <div class="ticker-ctx-badge" id="ticker-ctx">GOOGL</div>
+      </div>
+
+      <div class="msgs" id="msgs">
+        <div class="empty-state" id="es">
+          <div class="es-logo">Quiver</div>
+          <div class="es-sub">How can I help you today?</div>
+          <div class="chips">
+            <div class="chip">What can you help me with?</div>
+            <div class="chip">Write a Python function for me</div>
+            <div class="chip">Explain something complex simply</div>
+            <div class="chip">Help me brainstorm ideas</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div id="pcb">
+          <span class="pcb-dot"></span>
+          <span>AI has live GOOGL data</span>
+          <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px">✕</button>
+        </div>
+        <div class="input-box" id="ibox">
+          <button class="attach-btn">📎</button>
+          <div class="fake-input" id="finput"></div>
+          <button class="send-btn" id="sbtn">↑</button>
+        </div>
+        <div class="input-hint">Shift+Enter for new line · Enter to send</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- STOCK PANEL -->
+  <div class="stock-panel" id="sp">
+    <div class="sp-hd">
+      <div class="sp-hd-left">
+        <div class="sp-ticker-row">
+          <span class="sp-ticker" id="sp-tk">—</span>
+          <span class="sp-company" id="sp-co"></span>
+        </div>
+        <div class="sp-price-row">
+          <span class="sp-price" id="sp-pr"></span>
+          <span class="sp-chg" id="sp-ch"></span>
+          <span class="sp-live" id="sp-lv">Live</span>
+        </div>
+      </div>
+      <div class="sp-hd-right">
+        <div class="sp-ticker-wrap">
+          <span class="sp-ticker-lbl">Ticker:</span>
+          <input class="sp-ticker-inp" id="sp-inp" placeholder="AAPL" readonly/>
+        </div>
+        <button class="sp-close">×</button>
+      </div>
+    </div>
+    <div class="sp-body" id="sp-body">
+      <div class="sp-placeholder">Type a ticker symbol above and press Enter</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Clock ──
+(function(){
+  function tick(){
+    const el=document.getElementById('nav-clock');
+    if(!el) return;
+    const now=new Date();
+    const day=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const t=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    el.textContent=`${day} · ${t}`;
+  }
+  tick(); setInterval(tick,1000);
+})();
+
+// ── Generate fake GOOGL price series (Apr → May, ending ~383, downtrend last 2d) ──
+function genGOOGLData(){
+  const data=[], volData=[];
+  // start ~Apr 1 = unix ts
+  let d=new Date('2026-04-01'); let p=330;
+  while(d<=new Date('2026-05-23')){
+    const dow=d.getDay();
+    if(dow!==0&&dow!==6){
+      p+=(Math.random()-.42)*6+(dow===1?-2:1.2);
+      p=Math.max(295,Math.min(450,p));
+      const ts=Math.floor(d.getTime()/1000);
+      const o=+(p+(Math.random()-.5)*3).toFixed(2);
+      const c=+(p).toFixed(2);
+      const h=+(Math.max(o,c)+Math.random()*4).toFixed(2);
+      const l=+(Math.min(o,c)-Math.random()*4).toFixed(2);
+      data.push({time:ts,open:o,high:h,low:l,close:c});
+      volData.push({time:ts,value:+(8e6+Math.random()*16e6).toFixed(0),color:c>=o?'rgba(52,211,153,0.4)':'rgba(248,113,113,0.4)'});
+    }
+    d.setDate(d.getDate()+1);
+  }
+  // Force last 2 bars downward to match screenshot
+  if(data.length>=2){
+    const n=data.length;
+    data[n-1].close=382.97; data[n-1].open=387.5; data[n-1].high=389.0; data[n-1].low=381.2;
+    data[n-2].close=388.2; data[n-2].open=391.0; data[n-2].high=392.5; data[n-2].low=386.0;
+    volData[n-1].color='rgba(248,113,113,0.5)';
+    volData[n-2].color='rgba(248,113,113,0.4)';
+  }
+  return {data,volData};
+}
+
+let chartInstance=null;
+function renderChart(containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  if(chartInstance){ try{chartInstance.remove();}catch(e){} chartInstance=null; }
+  const chart=LightweightCharts.createChart(el,{
+    width:el.clientWidth,height:200,
+    layout:{background:{type:'Solid',color:'#0a1212'},textColor:'#4a6868'},
+    grid:{vertLines:{color:'#1e3030'},horzLines:{color:'#1e3030'}},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+    rightPriceScale:{borderColor:'#1e3030'},
+    timeScale:{borderColor:'#1e3030',timeVisible:false},
+  });
+  chartInstance=chart;
+  const {data,volData}=genGOOGLData();
+
+  // volume (histogram on a separate pane scale)
+  const volSeries=chart.addHistogramSeries({
+    priceFormat:{type:'volume'},
+    priceScaleId:'vol',
+    scaleMargins:{top:0.8,bottom:0},
+  });
+  volSeries.setData(volData);
+
+  const priceSeries=chart.addLineSeries({
+    color:'#f87171',lineWidth:2,
+    priceScaleId:'right',
+    scaleMargins:{top:0.05,bottom:0.25},
+    lastValueVisible:true,
+    priceLineVisible:true,
+  });
+  priceSeries.setData(data.map(d=>({time:d.time,value:d.close})));
+
+  // MA line
+  const maData=[];
+  for(let i=19;i<data.length;i++){
+    const avg=data.slice(i-19,i+1).reduce((s,d)=>s+d.close,0)/20;
+    maData.push({time:data[i].time,value:+avg.toFixed(2)});
+  }
+  const maSeries=chart.addLineSeries({color:'rgba(0,145,145,0.6)',lineWidth:1,priceScaleId:'right',lastValueVisible:false,priceLineVisible:false});
+  maSeries.setData(maData);
+
+  chart.timeScale().fitContent();
+}
+
+// ── Typewriter ──
+function typeInto(el,text,speed,cb){
+  el.innerHTML='';
+  const cur=document.createElement('span');
+  cur.className='cursor-blink'; el.appendChild(cur);
+  let i=0;
+  const iv=setInterval(()=>{
+    el.insertBefore(document.createTextNode(text[i]),cur); i++;
+    if(i>=text.length){ clearInterval(iv); if(cb) setTimeout(cb,300); }
+  },speed);
+}
+
+function streamText(el,text,speed,cb){
+  let i=0; el.textContent='';
+  const iv=setInterval(()=>{
+    el.textContent+=text[i];
+    document.getElementById('msgs').scrollTop=99999;
+    i++;
+    if(i>=text.length){ clearInterval(iv); if(cb) setTimeout(cb,180); }
+  },speed);
+}
+
+// ── DOM helpers ──
+function clearES(){ const e=document.getElementById('es'); if(e) e.remove(); }
+function addUserBubble(t){
+  clearES();
+  const a=document.getElementById('msgs');
+  const el=document.createElement('div'); el.className='bubble user'; el.textContent=t;
+  a.appendChild(el); a.scrollTop=99999;
+}
+function addTyping(){
+  clearES();
+  const a=document.getElementById('msgs');
+  const el=document.createElement('div'); el.className='typing-ind'; el.id='typing'; el.textContent='Quiver AI is thinking…';
+  a.appendChild(el); a.scrollTop=99999; return el;
+}
+function addBotBubble(){
+  clearES();
+  const a=document.getElementById('msgs');
+  const w=document.createElement('div'); w.className='bot-wrap';
+  const av=document.createElement('div'); av.className='bot-avatar';
+  const bub=document.createElement('div'); bub.className='bubble bot'; bub.id='bot-txt';
+  w.appendChild(av); w.appendChild(bub); a.appendChild(w); a.scrollTop=99999; return bub;
+}
+
+// ── Render full stock panel ──
+function renderPanel(){
+  document.getElementById('sp-tk').textContent='GOOGL';
+  document.getElementById('sp-co').textContent='Alphabet Inc.';
+  document.getElementById('sp-inp').value='GOOGL';
+  document.getElementById('sp-pr').textContent='$382.97';
+  const ch=document.getElementById('sp-ch');
+  ch.textContent='▼ -1.21%'; ch.className='sp-chg down';
+
+  const body=document.getElementById('sp-body');
+  body.innerHTML='';
+
+  // chart card
+  const cc=document.createElement('div'); cc.className='sp-chart-card';
+  cc.innerHTML=`
+    <div class="sp-chart-hd">
+      <div class="sp-card-lbl" style="margin-bottom:0">Price Chart</div>
+      <div class="sp-period-bar">
+        <button class="sp-pb active">1M</button>
+        <button class="sp-pb">3M</button>
+        <button class="sp-pb">1Y</button>
+      </div>
+    </div>
+    <div class="sp-chart-container" id="chart-el"></div>`;
+  body.appendChild(cc);
+  setTimeout(()=>renderChart('chart-el'),60);
+
+  // explanation
+  const ex=document.createElement('div'); ex.className='sp-expl-card';
+  ex.innerHTML=`<div class="sp-card-lbl teal">What this means</div>
+    <div class="sp-expl-text">This downtrend is showing early signs of exhaustion. Sentiment is positive despite the downtrend, suggesting potential reversal, and volume has declined 80% over the last 3 days suggesting weakening conviction. The survival model gives this trend a 48% chance of surviving the next 7 days.</div>`;
+  body.appendChild(ex);
+
+  // metrics
+  const mg=document.createElement('div'); mg.className='sp-metrics-grid';
+  mg.innerHTML=`
+    <div class="sp-mc"><div class="sp-mc-lbl">Trend</div><div class="sp-mc-val down">↓ Down</div><div class="sp-mc-desc">Price falling over the last 2 days</div></div>
+    <div class="sp-mc"><div class="sp-mc-lbl">News Mood</div><div class="sp-mc-val up">Positive</div><div class="sp-mc-desc">Headlines leaning bullish</div></div>
+    <div class="sp-mc"><div class="sp-mc-lbl">7-Day Forecast</div><div class="sp-mc-val acc">$369</div><div class="sp-mc-desc">Based on recent price pattern (-3.7%)</div></div>`;
+  body.appendChild(mg);
+
+  // risk
+  const rk=document.createElement('div'); rk.className='sp-risk-card';
+  rk.innerHTML=`
+    <div class="sp-risk-title">Trend Reversal Risk</div>
+    <div class="sp-risk-desc">How likely is the current trend to reverse in the next 7 days?</div>
+    <div class="sp-risk-bar-bg"><div class="sp-risk-marker" style="left:96%"></div></div>
+    <div class="sp-risk-lbl-row"><span style="color:var(--positive)">Low risk</span><span style="color:var(--negative)">High risk</span></div>
+    <div class="sp-risk-summary" style="color:var(--negative)">Currently: High risk (96% chance of reversal)</div>
+    <div class="sp-risk-median">Trend expected to last ~1 more day(s)</div>`;
+  body.appendChild(rk);
+}
+
+// ── DEMO ──
+function startDemo(){
+  document.getElementById('replay').style.opacity='0';
+  document.getElementById('prog').style.transition='none';
+  document.getElementById('prog').style.width='0';
+  document.getElementById('intro').style.opacity='1';
+  document.getElementById('intro').style.display='flex';
+  document.getElementById('shell').style.opacity='0';
+  document.getElementById('app-layout').classList.remove('sp-open');
+  document.getElementById('sp').classList.remove('open');
+  document.getElementById('sa-btn').classList.remove('active');
+  document.getElementById('ticker-ctx').style.display='none';
+  document.getElementById('sp-tk').textContent='—';
+  document.getElementById('sp-co').textContent='';
+  document.getElementById('sp-pr').textContent='';
+  document.getElementById('sp-ch').textContent='';
+  document.getElementById('sp-inp').value='';
+  document.getElementById('sp-lv').classList.remove('show');
+  document.getElementById('sp-body').innerHTML='<div class="sp-placeholder">Type a ticker symbol above and press Enter</div>';
+  document.getElementById('pcb').classList.remove('show');
+  document.getElementById('ibox').classList.remove('focused');
+  document.getElementById('finput').textContent='';
+  document.getElementById('sbtn').classList.remove('show');
+  if(chartInstance){ try{chartInstance.remove();}catch(e){} chartInstance=null; }
+  document.getElementById('msgs').innerHTML=`<div class="empty-state" id="es">
+    <div class="es-logo">Quiver</div>
+    <div class="es-sub">How can I help you today?</div>
+    <div class="chips">
+      <div class="chip">What can you help me with?</div>
+      <div class="chip">Write a Python function for me</div>
+      <div class="chip">Explain something complex simply</div>
+      <div class="chip">Help me brainstorm ideas</div>
+    </div>
+  </div>`;
+
+  const T=(ms,fn)=>setTimeout(fn,ms);
+  const TOTAL=46000;
+
+  // 0–1.8s: intro
+  T(1800,()=>{
+    document.getElementById('intro').style.opacity='0';
+    T(600,()=>{ document.getElementById('intro').style.display='none'; });
+    document.getElementById('shell').style.opacity='1';
+    document.getElementById('prog').style.transition=`width ${TOTAL}ms linear`;
+    document.getElementById('prog').style.width='100%';
+  });
+
+  // 3s: open stock panel (click Stock Analysis)
+  T(3000,()=>{
+    document.getElementById('sa-btn').classList.add('active');
+    document.getElementById('sp').classList.add('open');
+    document.getElementById('app-layout').classList.add('sp-open');
+  });
+
+  // 4.2s: type GOOGL
+  T(4200,()=>{
+    const inp=document.getElementById('sp-inp');
+    const chars='GOOGL'; let i=0;
+    const iv=setInterval(()=>{ inp.value+=chars[i]; i++; if(i>=chars.length) clearInterval(iv); },110);
+  });
+
+  // 5.4s: loading
+  T(5400,()=>{
+    document.getElementById('sp-body').innerHTML='<div class="sp-spin"><div class="ring"></div>Fetching live data…</div>';
+  });
+
+  // 7.8s: render panel
+  T(7800,()=>{
+    renderPanel();
+    document.getElementById('ticker-ctx').style.display='block';
+  });
+
+  // 9.2s: live badge
+  T(9200,()=>{
+    document.getElementById('sp-lv').classList.add('show');
+  });
+
+  // 10.2s: context badge
+  T(10200,()=>{
+    document.getElementById('pcb').classList.add('show');
+  });
+
+  // 11.5s: add ticker chip + type question
+  T(11500,()=>{
+    const area=document.getElementById('msgs');
+    clearES();
+    const chip=document.createElement('div'); chip.className='tdc show';
+    chip.style.alignSelf='flex-end'; chip.style.marginLeft='auto';
+    chip.innerHTML=`<span class="tdc-dot"></span><span class="tdc-label">GOOGL detected — Open stock analysis?</span><button class="tdc-btn">Open</button>`;
+    area.appendChild(chip);
+
+    document.getElementById('ibox').classList.add('focused');
+    typeInto(document.getElementById('finput'),'Should I buy GOOGL right now?',46,()=>{
+      document.getElementById('sbtn').classList.add('show');
+      T(500,()=>{
+        document.getElementById('ibox').classList.remove('focused');
+        document.getElementById('finput').innerHTML='';
+        document.getElementById('sbtn').classList.remove('show');
+        addUserBubble('Should I buy GOOGL right now?');
+        T(700,()=>{
+          const ty=addTyping();
+          T(1500,()=>{
+            ty.remove();
+            const bub=addBotBubble();
+            const resp=`GOOGL is at $382.97, down 1.21% and in a 2-day downtrend — but the reversal risk is at 96%, meaning the model sees this selloff as nearly spent. News sentiment is positive and volume has faded 80%, both classic exhaustion signals. The 7-day forecast targets $369, but with a reversal this likely, the risk/reward actually favors a cautious entry here.`;
+            streamText(bub,resp,20,()=>{
+              // ── SECOND QUESTION ──
+              T(1800,()=>{
+                document.getElementById('ibox').classList.add('focused');
+                typeInto(document.getElementById('finput'),'i wanna understand the stock market',44,()=>{
+                  document.getElementById('sbtn').classList.add('show');
+                  T(400,()=>{
+                    document.getElementById('ibox').classList.remove('focused');
+                    document.getElementById('finput').innerHTML='';
+                    document.getElementById('sbtn').classList.remove('show');
+                    addUserBubble('i wanna understand the stock market');
+                    T(600,()=>{
+                      const ty2=addTyping();
+                      T(1400,()=>{
+                        ty2.remove();
+                        const bub2=addBotBubble();
+                        const resp2=`The stock market is where shares of public companies are bought and sold. When you buy a share you own a small piece of that company — if it grows, your investment grows with it. Prices move based on earnings, news, and investor sentiment, which is why tools like Quiver layer in RSI, moving averages, and survival models to cut through the noise and give you an actual edge.`;
+                        streamText(bub2,resp2,22,()=>{
+                          T(2000,()=>{ document.getElementById('replay').style.opacity='1'; });
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+}
+
+window.addEventListener('load',()=>setTimeout(startDemo,300));
+</script>
+</body>
+</html>

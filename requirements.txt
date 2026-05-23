@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+httpx
+python-dotenv
+sqlalchemy
+bcrypt
+passlib[bcrypt]
+python-jose[cryptography]
+pytest
+pytest-asyncio
+pdfplumber
+python-multipart
+yfinance
+numpy
+scikit-learn
+vaderSentiment
+lifelines

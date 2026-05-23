@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+*.db
+*.pkl
+*.mp4
+.pytest_cache/
+.claude/

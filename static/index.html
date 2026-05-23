@@ -1,0 +1,2797 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiver</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link id="hljs-dark"  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" disabled />
+  <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* LIGHT THEME (default) */
+    :root {
+      --bg: #ffffff;
+      --surface: #edf5f5;
+      --sidebar: #edf5f5;
+      --surface-2: #ddeaea;
+      --surface-3: #c8dcdc;
+      --accent: #009191;
+      --accent-hover: #007878;
+      --accent-glow: rgba(0,145,145,0.22);
+      --accent-dim: rgba(0,145,145,0.10);
+      --secondary: #00c4dc;
+      --positive: #16a34a;
+      --negative: #dc2626;
+      --warning: #d97706;
+      --text: #111111;
+      --text-2: #476060;
+      --muted: #7a9a9a;
+      --border: #b8c9c8;
+      --border-2: #9ab6b5;
+      --code-bg: #f0f8f8;
+      --code-border: #b8c9c8;
+      --chart-bg: #ffffff;
+      --chart-border: #b8c9c8;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.07);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
+      --shadow-lg: 0 8px 40px rgba(0,145,145,0.12);
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    /* DARK THEME */
+    [data-theme="dark"] {
+      --bg: #0a1212;
+      --surface: #0f1c1c;
+      --sidebar: #0c1818;
+      --surface-2: #162222;
+      --surface-3: #1e2e2e;
+      --accent: #009191;
+      --accent-hover: #00b4b4;
+      --accent-glow: rgba(0,145,145,0.28);
+      --accent-dim: rgba(0,145,145,0.14);
+      --secondary: #00c4dc;
+      --positive: #34d399;
+      --negative: #f87171;
+      --warning: #fbbf24;
+      --text: #e8f0f0;
+      --text-2: #8ab0b0;
+      --muted: #4a6868;
+      --border: #1e3030;
+      --border-2: #284040;
+      --code-bg: #071010;
+      --code-border: #1e3030;
+      --chart-bg: #0c1818;
+      --chart-border: #1e3030;
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.5);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.6);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.7);
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    *, *::before, *::after { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, box-shadow 0.2s ease; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .screen { display: none; height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* LOGIN */
+    #login-screen {
+      align-items: center;
+      justify-content: center;
+      background: #edf5f5;
+      position: relative;
+      overflow: hidden;
+    }
+    [data-theme="dark"] #login-screen { background: #0a1212; }
+
+    #login-screen::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle 220px at 15% 25%, rgba(0,145,145,0.12) 0%, transparent 70%),
+        radial-gradient(circle 180px at 85% 75%, rgba(0,196,220,0.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .login-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 4px 24px rgba(0,145,145,0.08);
+      animation: cardIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+      position: relative;
+      z-index: 1;
+    }
+    [data-theme="dark"] .login-card {
+      background: #11141c;
+      border-color: #1e2235;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(22px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .login-logo-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .login-logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      color: #111111;
+      letter-spacing: -0.5px;
+    }
+    [data-theme="dark"] .login-logo-text { color: #e8eaf0; }
+
+    .login-subtitle {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-bottom: 26px;
+    }
+
+    .tab-row {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 22px;
+    }
+    [data-theme="dark"] .tab-row { border-color: #1e2235; }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 0;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn.active { color: #009191; border-bottom-color: #009191; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .form-group input {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      color: #111111;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    [data-theme="dark"] .form-group input {
+      background: #1a1e2a; border-color: #1e2235; color: #e8eaf0;
+    }
+    .form-group input::placeholder { color: #94a3b8; }
+    .form-group input:focus { border-color: #009191; box-shadow: 0 0 0 3px rgba(0,145,145,0.10); }
+
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 38px; }
+    .pw-toggle {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: #94a3b8; cursor: pointer;
+      font-size: 14px; padding: 2px; line-height: 1;
+    }
+    .pw-toggle:hover { color: #009191; }
+
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #009191, #00c4dc);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 14px rgba(0,145,145,0.25);
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+    [data-theme="dark"] .submit-btn:disabled { background: #1a1e2a; color: #5c6480; }
+
+    .login-error {
+      display: none;
+      color: var(--negative);
+      font-size: 13px;
+      margin-top: 12px;
+      text-align: center;
+      padding: 8px 12px;
+      background: rgba(220,38,38,0.06);
+      border: 1px solid rgba(220,38,38,0.2);
+      border-radius: var(--radius);
+    }
+
+    /* TOP NAVIGATION */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .top-nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .nav-logo-text {
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .top-nav-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-clock {
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      padding: 0 4px;
+    }
+
+    .stock-analysis-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 14px;
+      background: rgba(0,145,145,0.08);
+      border: 1px solid #7dd3c8;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #007070;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .stock-analysis-btn:hover { background: rgba(0,145,145,0.15); border-color: #009191; }
+    .stock-analysis-btn.active { background: #009191; color: #fff; border-color: #009191; }
+    [data-theme="dark"] .stock-analysis-btn { color: #7dd3c8; border-color: rgba(0,145,145,0.4); }
+    [data-theme="dark"] .stock-analysis-btn.active { background: #009191; color: #fff; }
+    .sab-dot { width: 7px; height: 7px; background: #00c4dc; border-radius: 50%; flex-shrink: 0; }
+    .stock-analysis-btn.active .sab-dot { background: rgba(255,255,255,0.8); }
+
+    .theme-toggle-btn {
+      width: 32px; height: 32px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .theme-toggle-btn:hover { background: var(--surface-3); color: var(--text); }
+
+    /* APP LAYOUT */
+    #chat-screen { overflow: hidden; }
+    #app-layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 160px;
+      min-width: 160px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .sidebar-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 10px 8px 0;
+    }
+
+    .new-chat-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 12px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .new-chat-btn:hover { background: var(--accent-hover); box-shadow: 0 4px 12px var(--accent-glow); }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .chat-list::-webkit-scrollbar { width: 4px; }
+    .chat-list::-webkit-scrollbar-track { background: transparent; }
+    .chat-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .chat-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      background: none;
+      border: none;
+      border-radius: var(--radius);
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 7px 8px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s, color 0.15s;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .chat-item:hover { background: var(--surface-2); color: var(--text-2); }
+    .chat-item.active { background: rgba(0,145,145,0.08); color: var(--accent); }
+
+    .chat-item-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chat-delete-btn {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1;
+      padding: 1px 4px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: opacity 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .chat-item:hover .chat-delete-btn { opacity: 1; }
+    .chat-delete-btn:hover { color: var(--negative); }
+
+    .chat-ticker-badge {
+      flex-shrink: 0;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,145,145,0.3);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-footer {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-user-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .sidebar-user-avatar {
+      width: 24px; height: 24px;
+      background: rgba(0,145,145,0.15);
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 1px solid rgba(0,145,145,0.2);
+    }
+    .sidebar-username {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text-2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sidebar-footer-btns {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .logout-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s;
+    }
+    .logout-btn:hover { color: var(--negative); }
+    .settings-gear-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .settings-gear-btn:hover { color: var(--accent); background: var(--accent-dim); }
+
+    /* CHAT MAIN */
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-width: 0;
+      background: var(--bg);
+      position: relative;
+    }
+
+    /* MODEL BAR */
+    .model-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 20px 0;
+      flex-shrink: 0;
+      gap: 8px;
+    }
+
+    .model-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-2);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      padding: 5px 14px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+      max-width: 200px;
+    }
+    .model-select:hover, .model-select:focus { border-color: var(--accent); color: var(--text); }
+    .model-select option { background: var(--surface); color: var(--text); }
+
+    .active-ticker-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(0,145,145,0.3);
+      border-radius: 6px;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+
+    /* MESSAGES */
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 48rem;
+      margin: 0 auto;
+      align-self: center;
+      min-width: 0;
+    }
+    .messages-area::-webkit-scrollbar { width: 4px; }
+    .messages-area::-webkit-scrollbar-track { background: transparent; }
+    .messages-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* EMPTY STATE */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      gap: 8px;
+    }
+    .empty-state-logo {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .empty-state p { font-size: 14px; }
+
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 16px;
+      max-width: 480px;
+    }
+    .suggestion-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-2);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+    }
+    .suggestion-chip:hover {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* NO CHAT SELECTED */
+    .no-chat-selected {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      gap: 8px;
+    }
+    .no-chat-selected .big-icon { font-size: 40px; opacity: 0.3; }
+
+    /* BUBBLES */
+    .bubble {
+      max-width: min(75%, 680px);
+      padding: 10px 14px;
+      line-height: 1.6;
+      font-size: 14px;
+      word-break: break-word;
+      animation: bubbleIn 0.2s ease both;
+    }
+    @keyframes bubbleIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .bubble.user {
+      align-self: flex-end;
+      background: #009191;
+      color: #fff;
+      border-radius: 16px 16px 4px 16px;
+      border: none;
+      box-shadow: 0 2px 10px rgba(0,145,145,0.25);
+      white-space: pre-wrap;
+    }
+
+    .bubble.bot {
+      align-self: flex-start;
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 4px 16px 16px 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      max-width: min(80%, 680px);
+    }
+
+    .bubble.error {
+      align-self: flex-start;
+      background: rgba(220,38,38,0.06);
+      color: var(--negative);
+      border: 1px solid rgba(220,38,38,0.2);
+      border-radius: 12px;
+      white-space: pre-wrap;
+    }
+
+    /* BOT MESSAGE WRAPPER */
+    .bot-msg-wrapper {
+      align-self: flex-start;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      max-width: 100%;
+      animation: bubbleIn 0.2s ease both;
+    }
+
+    .bot-avatar {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, #009191, #00c4dc);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .bot-bubble-content {
+      position: relative;
+      max-width: min(80%, 640px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bot-bubble-content .bubble.bot { align-self: unset; }
+
+    .bot-bubble-content .msg-copy-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .bot-msg-wrapper:hover .msg-copy-btn { opacity: 1; }
+    .bot-bubble-content .msg-copy-btn:hover { background: var(--border); color: var(--text); }
+    .bot-bubble-content .msg-copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+    /* TICKER DETECT CHIP */
+    .ticker-detect-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      padding: 5px 10px 5px 12px;
+      background: #e8f8f8;
+      border: 1px solid #7dd3c8;
+      border-radius: 20px;
+      width: fit-content;
+    }
+    [data-theme="dark"] .ticker-detect-chip { background: rgba(0,145,145,0.10); border-color: rgba(0,145,145,0.3); }
+    .tdc-dot { width: 7px; height: 7px; background: #00c4dc; border-radius: 50%; flex-shrink: 0; }
+    .tdc-text { font-size: 11px; color: #007070; font-weight: 500; }
+    [data-theme="dark"] .tdc-text { color: #7dd3c8; }
+    .tdc-open-btn {
+      background: #009191; border: none; border-radius: 8px;
+      color: #fff; font-family: 'Inter', sans-serif;
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; cursor: pointer;
+      margin-left: 4px; white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .tdc-open-btn:hover { background: #007878; }
+
+    /* MARKDOWN CONTENT */
+    .bubble.bot p { margin: 0 0 8px; }
+    .bubble.bot p:last-child { margin-bottom: 0; }
+    .bubble.bot h1, .bubble.bot h2, .bubble.bot h3, .bubble.bot h4 {
+      margin: 14px 0 6px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.3;
+      color: var(--text);
+    }
+    .bubble.bot h1 { font-size: 17px; }
+    .bubble.bot h2 { font-size: 15px; }
+    .bubble.bot h3 { font-size: 14px; }
+    .bubble.bot ul, .bubble.bot ol { padding-left: 20px; margin: 4px 0 8px; }
+    .bubble.bot li { margin: 3px 0; }
+    .bubble.bot strong { font-weight: 600; color: var(--text); }
+    .bubble.bot em { font-style: italic; color: var(--muted); }
+    .bubble.bot a { color: var(--accent); text-decoration: none; }
+    .bubble.bot a:hover { text-decoration: underline; }
+    .bubble.bot blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 4px 0 4px 12px;
+      color: var(--muted);
+      margin: 8px 0;
+      font-style: italic;
+    }
+    .bubble.bot code {
+      background: var(--surface-2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'Consolas', monospace;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+    .bubble.bot pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin: 10px 0;
+      position: relative;
+    }
+    .bubble.bot pre code {
+      background: none; padding: 0; font-size: 13px; color: inherit; border: none;
+    }
+    .bubble.bot table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 13px; }
+    .bubble.bot th, .bubble.bot td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+    .bubble.bot th { background: var(--surface-2); font-weight: 600; }
+    .bubble.bot hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+
+    /* COPY BUTTON */
+    .copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: var(--surface-2); border: 1px solid var(--code-border);
+      border-radius: 6px; color: var(--muted);
+      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+      padding: 3px 8px; cursor: pointer; opacity: 0;
+      transition: opacity 0.15s, background 0.15s;
+    }
+    .bubble.bot pre:hover .copy-btn { opacity: 1; }
+    .copy-btn:hover { background: var(--border); color: var(--text); }
+    .copy-btn.copied { color: var(--positive); border-color: var(--positive); }
+
+    /* STREAMING CURSOR */
+    @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+    .cursor { display: inline-block; color: var(--accent); animation: blink 0.8s step-end infinite; margin-left: 1px; font-size: 0.85em; }
+
+    /* TYPING INDICATOR */
+    .typing-indicator {
+      align-self: flex-start;
+      font-size: 14px;
+      color: var(--muted);
+      font-style: italic;
+      padding: 4px 0;
+    }
+
+    /* INPUT AREA */
+    .input-area {
+      padding: 8px 20px 14px;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 48rem;
+      width: 100%;
+      align-self: center;
+    }
+
+    .image-preview-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .image-preview-bar img {
+      height: 44px; width: 44px;
+      object-fit: cover; border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .image-preview-bar .remove-img-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 15px; cursor: pointer; padding: 2px 6px;
+      border-radius: 4px; line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+    .image-preview-bar .remove-img-btn:hover { color: var(--text); background: var(--border); }
+    .image-preview-bar .preview-label { font-size: 12px; color: var(--muted); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .input-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 7px 10px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input-container:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    #attach-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      width: 34px; height: 34px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.15s;
+    }
+    #attach-btn:hover { color: var(--accent); background: var(--accent-dim); }
+    #attach-btn.has-image { color: var(--accent); background: var(--accent-dim); border-color: var(--accent); }
+
+    #message-input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 4px 0;
+      outline: none;
+      resize: none;
+      line-height: 1.5;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    #message-input::placeholder { color: var(--muted); }
+
+    #send-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      width: 34px; height: 34px;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    #send-btn:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 12px var(--accent-glow); }
+    #send-btn:disabled { background: var(--surface-2); color: var(--muted); cursor: not-allowed; }
+
+    #stop-btn {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      background: rgba(220,38,38,0.10);
+      color: var(--negative);
+      border: 1px solid rgba(220,38,38,0.25);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #stop-btn:hover { background: rgba(220,38,38,0.18); }
+
+    .input-hint {
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* SCROLL TO BOTTOM */
+    .scroll-bottom-btn {
+      position: absolute;
+      bottom: 96px;
+      right: 20px;
+      width: 34px; height: 34px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 16px;
+      cursor: pointer;
+      display: none; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-md);
+      transition: background 0.15s, color 0.15s;
+      z-index: 10;
+    }
+    .scroll-bottom-btn:hover { background: var(--surface-2); color: var(--text); }
+
+    /* SLASH SUGGEST */
+    .slash-suggest {
+      position: absolute; bottom: calc(100% + 4px); left: 50px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 0; min-width: 200px;
+      z-index: 100; box-shadow: var(--shadow-md);
+    }
+    .slash-suggest-item {
+      padding: 7px 14px; cursor: pointer; font-size: 13px;
+      color: var(--text); display: flex; gap: 8px; align-items: center;
+    }
+    .slash-suggest-item:hover { background: var(--accent-dim); color: var(--accent); }
+    .slash-suggest-item .cmd { color: var(--accent); font-family: monospace; font-weight: 600; }
+    .slash-suggest-item .desc { color: var(--muted); font-size: 11px; }
+
+    /* SETTINGS PANEL */
+    .settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 200;
+      backdrop-filter: blur(2px);
+    }
+    .settings-panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: 340px; height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      z-index: 201;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .settings-panel.open { transform: translateX(0); }
+    .settings-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .settings-header span { font-size: 15px; font-weight: 700; color: var(--text); font-family: 'Inter', sans-serif; }
+    .settings-close { background: none; border: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; padding: 0 4px; transition: color 0.15s; }
+    .settings-close:hover { color: var(--text); }
+    .settings-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .settings-section { margin-bottom: 28px; }
+    .settings-section h3 { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .settings-desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+    .settings-select, .settings-textarea {
+      width: 100%;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 13px; padding: 10px 12px;
+      outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .settings-select { cursor: pointer; }
+    .settings-select:focus, .settings-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .settings-select option { background: var(--surface); color: var(--text); }
+    .settings-textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+    .settings-textarea::placeholder { color: var(--muted); }
+    .settings-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .settings-save {
+      width: 100%; background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius); font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 600; padding: 12px; cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .settings-save:hover { background: var(--accent-hover); box-shadow: 0 4px 14px var(--accent-glow); }
+    .settings-save.saved { background: var(--positive); }
+    .settings-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0 20px; }
+    .settings-note { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+    /* STOCK SLIDE-OVER OVERLAY */
+    .stock-overlay {
+      display: none;
+      position: fixed;
+      inset: 52px 0 0 0;
+      background: rgba(248,250,252,0.55);
+      backdrop-filter: blur(2px);
+      z-index: 50;
+      transition: opacity 0.25s;
+    }
+    [data-theme="dark"] .stock-overlay { background: rgba(9,11,16,0.55); }
+    .stock-overlay.visible { display: block; }
+
+    /* STOCK SIDE PANEL — docks next to chat, no overlay */
+    :root { --sp-width: 480px; }
+    .stock-panel {
+      position: fixed;
+      top: 52px; right: 0; bottom: 0;
+      width: var(--sp-width);
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      box-shadow: -8px 0 32px rgba(0,145,145,0.10);
+      z-index: 51;
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stock-panel.open { transform: translateX(0); }
+    /* push the app layout left so chat stays visible */
+    #app-layout {
+      transition: padding-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #app-layout.stock-panel-open { padding-right: var(--sp-width); }
+
+    /* Panel header */
+    .sp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+      gap: 12px;
+    }
+    .sp-header-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .sp-ticker-row { display: flex; align-items: baseline; gap: 8px; }
+    .sp-ticker { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+    .sp-company { font-size: 12px; color: var(--muted); }
+    .sp-price-row { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+    .sp-price { font-size: 20px; font-weight: 700; color: var(--text); }
+    .sp-change-badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px; font-weight: 600;
+    }
+    .sp-change-badge.up { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; }
+    .sp-change-badge.down { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+    [data-theme="dark"] .sp-change-badge.up { background: rgba(52,211,153,0.10); border-color: rgba(52,211,153,0.25); color: #34d399; }
+    [data-theme="dark"] .sp-change-badge.down { background: rgba(248,113,113,0.10); border-color: rgba(248,113,113,0.25); color: #f87171; }
+    .sp-live-badge {
+      font-size: 10px; font-weight: 500; color: var(--muted);
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .sp-live-badge::before {
+      content: ''; display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; background: #22c55e;
+      animation: sp-pulse 2s ease-in-out infinite;
+    }
+    @keyframes sp-pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.35; }
+    }
+
+    .sp-header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .sp-ticker-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .sp-ticker-label { font-size: 11px; color: var(--muted); }
+    .sp-ticker-input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Inter', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      width: 60px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .sp-ticker-input::placeholder { color: var(--muted); font-weight: 400; }
+    .sp-close-btn {
+      width: 30px; height: 30px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 16px; line-height: 1;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sp-close-btn:hover { background: var(--surface-3); color: var(--text); }
+
+    /* Panel body */
+    .sp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sp-body::-webkit-scrollbar { width: 6px; }
+    .sp-body::-webkit-scrollbar-track { background: transparent; }
+    .sp-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .sp-placeholder {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sp-spinner { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 40px; color: var(--muted); font-size: 13px; }
+
+    /* Stock panel cards */
+    .sp-chart-card, .sp-explanation-card, .sp-risk-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sp-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .sp-card-label.indigo { color: #007070; }
+    [data-theme="dark"] .sp-card-label.indigo { color: #7dd3c8; }
+
+    .sp-explanation-card {
+      background: #e8f8f8;
+      border-color: #cceaea;
+    }
+    [data-theme="dark"] .sp-explanation-card { background: rgba(0,145,145,0.08); border-color: rgba(0,145,145,0.2); }
+    .sp-explanation-text { font-size: 13px; color: var(--text-2); line-height: 1.75; }
+
+    .sp-metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .sp-metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+    }
+    .sp-metric-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .sp-metric-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .sp-metric-value.up { color: var(--positive); }
+    .sp-metric-value.down { color: var(--negative); }
+    .sp-metric-value.indigo { color: var(--accent); }
+    .sp-metric-value.neutral { color: var(--warning); }
+    .sp-metric-desc { font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+    /* Risk card */
+    .sp-risk-title {
+      font-size: 11px; font-weight: 700;
+      color: var(--text); text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .sp-risk-desc { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .sp-risk-bar-wrap { margin-bottom: 8px; }
+    .sp-risk-bar {
+      width: 100%; height: 10px;
+      background: linear-gradient(90deg, #16a34a 0%, #d97706 50%, #dc2626 100%);
+      border-radius: 6px;
+      position: relative;
+      margin-bottom: 4px;
+    }
+    .sp-risk-marker {
+      position: absolute;
+      top: 50%; transform: translate(-50%, -50%);
+      width: 16px; height: 16px;
+      background: #fff;
+      border: 2px solid #111111;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    [data-theme="dark"] .sp-risk-marker { background: #232838; border-color: #e8eaf0; }
+    .sp-risk-bar-labels {
+      display: flex; justify-content: space-between;
+      font-size: 10px; font-weight: 500;
+    }
+    .sp-risk-summary { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    .sp-risk-median { font-size: 11px; color: var(--muted); }
+
+    /* Chart in panel */
+    .sp-chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .sp-period-bar { display: flex; gap: 3px; }
+    .sp-period-btn {
+      background: var(--surface-2);
+      border: none;
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 10px; font-weight: 600;
+      padding: 3px 9px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sp-period-btn:hover { color: var(--text); background: var(--surface-3); }
+    .sp-period-btn.active { background: var(--accent); color: #fff; }
+
+    .sp-chart-container { height: 200px; border-radius: 8px; overflow: hidden; background: var(--chart-bg); }
+
+    /* HISTORICAL DATA CARD */
+    .sp-historical-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, rgba(0,145,145,0.08), rgba(0,196,220,0.05));
+      border: 1px solid rgba(0,145,145,0.25);
+      border-radius: var(--radius-lg);
+      font-size: 12px;
+    }
+    .sp-historical-icon { font-size: 16px; flex-shrink: 0; }
+    .sp-historical-label { font-weight: 600; color: var(--text); }
+    .sp-historical-sub { color: var(--muted); font-size: 11px; margin-top: 1px; }
+    .sp-historical-clear {
+      margin-left: auto; background: none; border: none;
+      color: var(--muted); cursor: pointer; font-size: 14px; line-height: 1;
+      padding: 2px 5px; border-radius: 4px; flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .sp-historical-clear:hover { color: var(--negative); }
+
+    /* SPINNER */
+    .spinner-ring { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="screen">
+    <div class="login-card">
+      <div class="login-logo-row">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <polyline points="5,7 16,17 5,27" stroke="#0d9488" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="16,7 27,17 16,27" stroke="#7dd3c8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="login-logo-text">Quiver</span>
+      </div>
+      <div class="login-subtitle">Sign in to your workspace</div>
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button class="tab-btn" id="tab-register" onclick="switchTab('register')">Register</button>
+      </div>
+      <form id="auth-form" onsubmit="handleAuth(event)">
+        <div class="form-group">
+          <label for="auth-username">Username</label>
+          <input id="auth-username" type="text" autocomplete="username" placeholder="Enter your username" required />
+        </div>
+        <div class="form-group">
+          <label for="auth-password">Password</label>
+          <div class="pw-wrap">
+            <input id="auth-password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+            <button type="button" class="pw-toggle" id="pw-toggle" onclick="togglePwVisibility()" title="Show/hide password">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="auth-submit-btn">Sign In</button>
+      </form>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- CHAT SCREEN -->
+  <div id="chat-screen" class="screen">
+
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+      <div class="top-nav-logo">
+        <svg width="26" height="26" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+          <polyline points="5,7 16,17 5,27" stroke="#0d9488" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="16,7 27,17 16,27" stroke="#7dd3c8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="nav-logo-text">Quiver</span>
+      </div>
+      <div class="top-nav-actions">
+        <span id="nav-clock" class="nav-clock"></span>
+        <button class="stock-analysis-btn" id="stock-analysis-nav-btn" onclick="openStockPanel(null)">
+          <span class="sab-dot"></span>
+          Stock Analysis
+        </button>
+        <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">
+          <span id="theme-icon">🌙</span>
+        </button>
+      </div>
+    </nav>
+
+    <div id="app-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-body">
+          <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
+          <div class="chat-list" id="chat-list"></div>
+        </div>
+        <div class="sidebar-footer">
+          <div class="sidebar-user-row">
+            <div class="sidebar-user-avatar"></div>
+            <span class="sidebar-username" id="sidebar-username">—</span>
+            <div class="sidebar-footer-btns">
+              <button class="logout-btn" onclick="logout()">Sign out</button>
+              <button class="settings-gear-btn" onclick="openSettings()">⚙</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Chat Main -->
+      <main class="chat-main" id="chat-main">
+        <div class="no-chat-selected">
+          <div class="big-icon">💬</div>
+          <p>Create a new chat to get started</p>
+        </div>
+      </main>
+    </div>
+
+    <!-- Stock Slide-Over Overlay -->
+    <div class="stock-overlay" id="stock-overlay" onclick="closeStockPanel()"></div>
+
+    <!-- Stock Slide-Over Panel -->
+    <div class="stock-panel" id="stock-panel">
+      <div class="sp-header">
+        <div class="sp-header-info">
+          <div class="sp-ticker-row">
+            <span id="sp-ticker-name" class="sp-ticker">—</span>
+            <span id="sp-company" class="sp-company"></span>
+          </div>
+          <div class="sp-price-row">
+            <span id="sp-price" class="sp-price"></span>
+            <span id="sp-change" class="sp-change-badge"></span>
+            <span id="sp-live-badge" class="sp-live-badge" style="display:none"></span>
+          </div>
+        </div>
+        <div class="sp-header-controls">
+          <div class="sp-ticker-input-wrap">
+            <span class="sp-ticker-label">Ticker:</span>
+            <input class="sp-ticker-input" id="sp-ticker-input" type="text" placeholder="AAPL" maxlength="5"
+                   onkeydown="if(event.key==='Enter')runStockPanelAnalysis(this.value.trim().toUpperCase())" />
+          </div>
+          <button class="sp-close-btn" onclick="closeStockPanel()">×</button>
+        </div>
+      </div>
+      <div class="sp-body" id="sp-body">
+        <div class="sp-placeholder">
+          <span style="font-size:14px;color:var(--muted)">Type a ticker symbol above and press Enter</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-header">
+      <span>Settings</span>
+      <button class="settings-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <h3>Default Model</h3>
+        <p class="settings-desc">Applied to new chats. You can change the model per-chat in the chat header.</p>
+        <select class="settings-select" id="settings-model"></select>
+        <p class="settings-note">All models via OpenRouter. Free tier has rate limits.</p>
+      </div>
+      <hr class="settings-divider" />
+      <div class="settings-section">
+        <h3>Default System Prompt</h3>
+        <p class="settings-desc">Sets the AI's behavior for all new chats.</p>
+        <textarea class="settings-textarea" id="settings-system-prompt" placeholder="e.g. You are a helpful AI assistant. Be concise and direct."></textarea>
+      </div>
+    </div>
+    <div class="settings-footer">
+      <button class="settings-save" id="settings-save-btn" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+  <script>
+    // THEME
+    (function initTheme() {
+      const saved = localStorage.getItem('theme') || 'light';
+      applyTheme(saved, false);
+    })();
+
+    function applyTheme(theme, save = true) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const icon = document.getElementById('theme-icon');
+      if (icon) icon.textContent = theme === 'dark' ? '☀' : '🌙';
+      const hljsDark  = document.getElementById('hljs-dark');
+      const hljsLight = document.getElementById('hljs-light');
+      if (hljsDark)  hljsDark.disabled  = theme === 'light';
+      if (hljsLight) hljsLight.disabled = theme === 'dark';
+      if (save) localStorage.setItem('theme', theme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    // LOGIN HELPERS
+    function togglePwVisibility() {
+      const input = document.getElementById('auth-password');
+      const btn = document.getElementById('pw-toggle');
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁';
+      }
+    }
+
+    // CONFIG
+    const DEFAULT_MODEL = 'qwen/qwen3-next-80b-a3b-instruct:free';
+
+    const PLATFORM_SYSTEM_PROMPT = `You are an AI assistant embedded in Quiver, a stock analysis platform. Be concise and direct — a short paragraph or a few bullet points is ideal. Avoid lengthy preambles, excessive disclaimers, and repeating what the user said. Only go into detail if the user explicitly asks for it.
+
+Quiver metrics available: price, daily % change, RSI(14), MA7/MA30, Bollinger Bands, 7-day linear forecast, Cox reversal probabilities (3d/5d/7d), trend direction/duration.
+
+IMPORTANT — when the system context contains a block starting with [QUIVER STOCK PANEL], use those exact numbers in your answer. Do NOT ask the user to open the panel or share values — you already have them. Answer directly and immediately.
+
+If no panel data is provided and the user asks about a specific stock, ask them to load it in the Stock Analysis panel.`;
+
+
+    const MODELS = [
+      { id: 'qwen/qwen3-next-80b-a3b-instruct:free',          label: 'Qwen 3 80B' },
+      { id: 'openai/gpt-oss-120b:free',                        label: 'GPT-OSS 120B' },
+      { id: 'meta-llama/llama-3.3-70b-instruct:free',          label: 'Llama 3.3 70B' },
+      { id: 'nousresearch/hermes-3-llama-3.1-405b:free',       label: 'Hermes 405B' },
+      { id: 'mistralai/mistral-small-3.1-24b-instruct:free',   label: 'Mistral Small 24B' },
+      { id: 'google/gemma-3-27b-it:free',                      label: 'Gemma 3 27B' },
+      { id: 'meta-llama/llama-3.2-3b-instruct:free',           label: 'Llama 3.2 3B (fast)' },
+    ];
+
+    const SUGGESTIONS = [
+      'What can you help me with?',
+      'Write a Python function for me',
+      'Explain something complex simply',
+      'Help me brainstorm ideas',
+    ];
+
+    // STATE
+    const _savedModel = localStorage.getItem('defaultModel');
+    if (_savedModel && !MODELS.some(m => m.id === _savedModel)) {
+      localStorage.setItem('defaultModel', DEFAULT_MODEL);
+    }
+
+    let currentTab = 'login';
+    let token = localStorage.getItem('token');
+    let currentUsername = localStorage.getItem('username') || '';
+    let activeChatId = null;
+    let chatsData = [];
+    let stopController = null;
+    let attachedImage = null;
+    let attachedFile = null;
+    let attachedCSVMeta = null; // { ticker, startDate, endDate, rows, years, rawText, name }
+    let userScrolledUp = false;
+    let chatContextTicker = null;
+
+    // CLOCK
+    (function startClock() {
+      function tick() {
+        const el = document.getElementById('nav-clock');
+        if (!el) return;
+        const now = new Date();
+        const day = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        el.textContent = `${day} · ${time}`;
+      }
+      tick();
+      setInterval(tick, 1000);
+    })();
+
+    // INIT
+    marked.setOptions({ breaks: true, gfm: true });
+    populateModelSelects();
+
+    if (token) showChatScreen();
+    else showLoginScreen();
+
+    function populateModelSelects() {
+      const opts = MODELS.map(m => `<option value="${m.id}">${escHtml(m.label)}</option>`).join('');
+      document.getElementById('settings-model').innerHTML = opts;
+    }
+
+    // AUTH SCREENS
+    function showLoginScreen() {
+      document.getElementById('login-screen').classList.add('active');
+      document.getElementById('chat-screen').classList.remove('active');
+    }
+
+    function showChatScreen() {
+      document.getElementById('login-screen').classList.remove('active');
+      document.getElementById('chat-screen').classList.add('active');
+      const userEl = document.getElementById('sidebar-username');
+      if (userEl) userEl.textContent = currentUsername;
+      const theme = localStorage.getItem('theme') || 'light';
+      const icon = document.getElementById('theme-icon');
+      if (icon) icon.textContent = theme === 'dark' ? '☀' : '🌙';
+      loadChats();
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+      document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+      document.getElementById('auth-submit-btn').textContent = tab === 'login' ? 'Sign In' : 'Create Account';
+      document.getElementById('auth-password').autocomplete = tab === 'login' ? 'current-password' : 'new-password';
+      setLoginError('');
+    }
+
+    function setLoginError(msg) {
+      const el = document.getElementById('login-error');
+      el.textContent = msg;
+      el.style.display = msg ? 'block' : 'none';
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      const username = document.getElementById('auth-username').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const btn = document.getElementById('auth-submit-btn');
+      if (!username || !password) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      setLoginError('');
+      const endpoint = currentTab === 'login' ? '/auth/login' : '/auth/register';
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) { setLoginError(data.detail || 'Something went wrong'); return; }
+        token = data.access_token;
+        currentUsername = username.toLowerCase();
+        localStorage.setItem('token', token);
+        localStorage.setItem('username', currentUsername);
+        showChatScreen();
+      } catch {
+        setLoginError('Could not reach server. Is the backend running?');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = currentTab === 'login' ? 'Sign In' : 'Create Account';
+      }
+    }
+
+    function logout() {
+      token = null; currentUsername = ''; activeChatId = null; chatsData = [];
+      localStorage.removeItem('token'); localStorage.removeItem('username');
+      closeStockPanel();
+      showLoginScreen();
+    }
+
+    // SETTINGS PANEL
+    function openSettings() {
+      const savedModel = localStorage.getItem('defaultModel') || DEFAULT_MODEL;
+      const savedPrompt = localStorage.getItem('defaultSystemPrompt') || '';
+      document.getElementById('settings-model').value = savedModel;
+      document.getElementById('settings-system-prompt').value = savedPrompt;
+      document.getElementById('settings-overlay').style.display = 'block';
+      document.getElementById('settings-panel').classList.add('open');
+    }
+
+    function closeSettings() {
+      document.getElementById('settings-overlay').style.display = 'none';
+      document.getElementById('settings-panel').classList.remove('open');
+    }
+
+    function saveSettings() {
+      const model = document.getElementById('settings-model').value;
+      const systemPrompt = document.getElementById('settings-system-prompt').value.trim();
+      localStorage.setItem('defaultModel', model);
+      localStorage.setItem('defaultSystemPrompt', systemPrompt);
+      const btn = document.getElementById('settings-save-btn');
+      btn.textContent = '✓ Saved';
+      btn.classList.add('saved');
+      setTimeout(() => {
+        btn.textContent = 'Save Settings';
+        btn.classList.remove('saved');
+        closeSettings();
+      }, 1200);
+    }
+
+    // STOCK SLIDE-OVER PANEL — live price refresh every 60 s
+    let _priceRefreshInterval = null;
+    let _priceRefreshTicker = null;
+
+    function _clearPriceRefresh() {
+      if (_priceRefreshInterval) { clearInterval(_priceRefreshInterval); _priceRefreshInterval = null; }
+      _priceRefreshTicker = null;
+      const badge = document.getElementById('sp-live-badge');
+      if (badge) badge.style.display = 'none';
+    }
+
+    async function _refreshLivePrice(ticker) {
+      try {
+        const r = await fetch(`/demo/price/${ticker}`, { headers: authHeader() });
+        if (!r.ok || _priceRefreshTicker !== ticker) return;
+        const d = await r.json();
+        document.getElementById('sp-price').textContent = `$${d.price.toFixed(2)}`;
+        if (d.daily_change_pct !== null && d.daily_change_pct !== undefined) {
+          const pctSign = d.daily_change_pct >= 0 ? '+' : '';
+          const chgEl = document.getElementById('sp-change');
+          chgEl.textContent = `${d.daily_change_pct >= 0 ? '▲' : '▼'} ${pctSign}${d.daily_change_pct.toFixed(2)}%`;
+          chgEl.className = `sp-change-badge ${d.daily_change_pct >= 0 ? 'up' : 'down'}`;
+        }
+        const badge = document.getElementById('sp-live-badge');
+        if (badge) { badge.style.display = 'inline-flex'; badge.textContent = 'Live'; }
+      } catch (_) {}
+    }
+
+    function _startPriceRefresh(ticker) {
+      _clearPriceRefresh();
+      _priceRefreshTicker = ticker;
+      const badge = document.getElementById('sp-live-badge');
+      if (badge) { badge.style.display = 'inline-flex'; badge.textContent = 'Live'; }
+      _priceRefreshInterval = setInterval(() => _refreshLivePrice(ticker), 60000);
+    }
+
+    function openStockPanel(ticker) {
+      document.getElementById('stock-panel').classList.add('open');
+      document.getElementById('app-layout').classList.add('stock-panel-open');
+      document.getElementById('stock-analysis-nav-btn').classList.add('active');
+      if (ticker) {
+        document.getElementById('sp-ticker-input').value = ticker;
+        runStockPanelAnalysis(ticker);
+      } else if (demoActiveTicker) {
+        document.getElementById('sp-ticker-input').value = demoActiveTicker;
+        runStockPanelAnalysis(demoActiveTicker);
+      }
+    }
+
+    function closeStockPanel() {
+      _clearPriceRefresh();
+      document.getElementById('stock-panel').classList.remove('open');
+      document.getElementById('app-layout').classList.remove('stock-panel-open');
+      document.getElementById('stock-analysis-nav-btn').classList.remove('active');
+      // keep _panelData so AI retains context after panel closes
+      _updatePanelContextBadge();
+    }
+
+    async function runStockPanelAnalysis(ticker) {
+      if (!ticker) return;
+      _clearPriceRefresh();
+      demoActiveTicker = ticker;
+      document.getElementById('sp-ticker-input').value = ticker;
+
+      const body = document.getElementById('sp-body');
+      body.innerHTML = `<div class="sp-spinner"><div class="spinner-ring"></div> Analyzing ${escHtml(ticker)}…</div>`;
+
+      document.getElementById('sp-ticker-name').textContent = ticker;
+      document.getElementById('sp-company').textContent = '';
+      document.getElementById('sp-price').textContent = '';
+      const chgEl = document.getElementById('sp-change');
+      chgEl.textContent = '';
+      chgEl.className = 'sp-change-badge';
+
+      try {
+        const r = await fetch(`/demo/analyze/${ticker}`, {
+          method: 'POST',
+          headers: { ...authHeader(), 'Content-Type': 'application/json' },
+        });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({ detail: 'Analysis failed' }));
+          body.innerHTML = `<div style="padding:24px;color:var(--negative)">${escHtml(err.detail)}</div>`;
+          return;
+        }
+        const data = await r.json();
+        renderDemoAnalysis(data);
+        _startPriceRefresh(ticker);
+      } catch (e) {
+        body.innerHTML = `<div style="padding:24px;color:var(--negative)">Error: ${escHtml(e.message)}</div>`;
+      }
+    }
+
+    // TICKER DETECTION - known US tickers whitelist
+    const KNOWN_TICKERS = new Set([
+      // S&P 500
+      'MMM','AOS','ABT','ABBV','ACN','ADBE','AMD','AES','AFL','APD','ABNB','AKAM','ALB',
+      'ARE','ALGN','ALLE','LNT','ALL','GOOGL','GOOG','MO','AMZN','AMCR','AEE','AAL',
+      'AEP','AXP','AIG','AMT','AWK','AMP','AME','AMGN','APH','ADI','ANSS','AON','APA',
+      'AAPL','AMAT','APTV','ACGL','ADM','ANET','AJG','AIZ','ATO','ADSK','ADP',
+      'AZO','AVB','AVY','AXON','BKR','BALL','BAC','BBWI','BAX','BDX','BIIB','BLK',
+      'BX','BA','BSX','BMY','AVGO','BR','BRO','BG','CDNS','CZR','CPT','CPB','COF',
+      'CAH','KMX','CCL','CARR','CAT','CBOE','CBRE','CDW','CE','COR','CNC','CNX',
+      'CDAY','CF','CRL','SCHW','CHTR','CVX','CMG','CB','CHD','CI','CINF','CTAS',
+      'CSCO','C','CFG','CLX','CME','CMS','KO','CTSH','CL','CMCSA','CMA','CAG',
+      'COP','ED','STZ','CEG','COO','CPRT','GLW','CTVA','CSGP','COST','CTRA','CCI',
+      'CSX','CMI','CVS','DHI','DHR','DRI','DVA','DE','DELL','DAL','DVN',
+      'DXCM','FANG','DLR','DFS','DG','DLTR','DPZ','DOV','DOW','DTE','DUK',
+      'DD','EMN','ETN','EBAY','ECL','EIX','EW','EA','ELV','LLY','EMR','ENPH',
+      'ETR','EOG','EPAM','EQT','EFX','EQIX','EQR','ESS','EL','ETSY','EG','EVRG',
+      'ES','EXC','EXPE','EXPD','EXR','XOM','FFIV','FDS','FICO','FAST','FRT','FDX',
+      'FIS','FITB','FSLR','FE','FI','FLT','FMC','F','FTNT','FTV','FOXA','FOX',
+      'BEN','FCX','GRMN','IT','GE','GEHC','GEV','GEN','GNRC','GD','GIS','GPC',
+      'GILD','GS','HAL','HIG','HAS','HCA','DOC','HSIC','HSY','HES','HPE','HLT',
+      'HOLX','HD','HON','HRL','HST','HWM','HPQ','HUM','HBAN','HII','IBM','IEX',
+      'IDXX','ITW','ILMN','INCY','IR','PODD','INTC','ICE','IFF','IP','IPG','INTU',
+      'ISRG','IVZ','INVH','IQV','IRM','JBHT','JBL','JKHY','JNJ','JCI','JPM',
+      'JNPR','KDP','KEY','KEYS','KMB','KIM','KMI','KLAC','KHC','KR','LHX','LH',
+      'LRCX','LW','LVS','LDOS','LEN','LIN','LYV','LKQ','LMT','LOW','LULU','LYB',
+      'MTB','MRO','MPC','MKTX','MAR','MMC','MLM','MAS','MA','MTCH','MKC','MCD',
+      'MCK','MDT','MRK','META','MET','MTD','MGM','MCHP','MU','MSFT','MAA','MRNA',
+      'MHK','MOH','TAP','MDLZ','MPWR','MNST','MCO','MS','MOS','MSI','MSCI','NDAQ',
+      'NTAP','NFLX','NEM','NWSA','NWS','NEE','NKE','NI','NDSN','NSC','NTRS','NOC',
+      'NCLH','NRG','NUE','NVDA','NVR','NXPI','ORLY','OXY','ODFL','OMC','ON','OKE',
+      'ORCL','OTIS','PCAR','PKG','PANW','PH','PAYX','PAYC','PYPL','PNR','PEP',
+      'PFE','PCG','PM','PSX','PNW','PNC','POOL','PPG','PPL','PFG','PG','PGR',
+      'PLD','PRU','PEG','PTC','PSA','PHM','PWR','QCOM','DGX','RL','RJF','RTX',
+      'O','REG','REGN','RF','RSG','RMD','RVTY','ROK','ROL','ROP','ROST','RCL',
+      'SPGI','CRM','SBAC','SLB','STX','SRE','NOW','SHW','SPG','SWKS','SJM','SNA',
+      'SOLV','SO','LUV','SWK','SBUX','STT','STLD','STE','SYK','SMCI','SYF','SNPS',
+      'SYY','TMUS','TROW','TTWO','TPR','TRGP','TGT','TEL','TDY','TFX','TER','TSLA',
+      'TXN','TXT','TMO','TJX','TSCO','TT','TDG','TRV','TRMB','TFC','TYL','TSN',
+      'USB','UBER','UDR','ULTA','UNP','UAL','UPS','URI','UNH','UHS','VLO','VTR',
+      'VRSN','VRSK','VZ','VRTX','VTRS','VLTO','V','VST','VNO','VICI','VMC','WRB',
+      'GWW','WAB','WBA','WMT','DIS','WBD','WM','WAT','WEC','WFC','WELL','WST',
+      'WDC','WY','WHR','WMB','WTW','WYNN','XEL','XYL','YUM','ZBRA','ZBH','ZTS',
+      // NASDAQ 100 / large-cap tech extras
+      'ASML','MELI','SIRI','WDAY','ZM','CRWD','DDOG','ZS','OKTA','NET','SNOW',
+      'PANW','TEAM','MDB','ESTC','GTLB','PATH','HUBS','VEEV','ZEN','DOCU',
+      // High-profile growth / meme
+      'PLTR','COIN','HOOD','SHOP','SNAP','PINS','LYFT','RBLX','RIVN','SOFI',
+      'DKNG','PENN','CHWY','GME','AMC','MARA','RIOT','CLSK','HUT','MSTR',
+      // International / ADRs
+      'BABA','NIO','XPEV','LI','TSM','SAP','TM','SONY','BIDU','JD','PDD',
+      'SE','GRAB','LCID','SMFG','MUFG','HMC','NSANY',
+      // Major ETFs
+      'SPY','QQQ','IWM','DIA','GLD','SLV','VTI','VOO','ARKK','ARKG','ARKW',
+      'IBIT','XLF','XLK','XLE','XLV','XLY','XLP','XLI','XLB','XLRE','XLU',
+      'TLT','HYG','LQD','EFA','EEM','VEA','VWO','BND','AGG','BITO',
+    ]);
+
+    function _detectTickers(text) {
+      // Strip HTML, then match only words that are ALREADY uppercase in the source —
+      // this prevents "it", "use", "ma" etc from being uppercased into fake tickers.
+      const plain = text.replace(/<[^>]+>/g, ' ');
+      const matches = plain.match(/\b[A-Z]{2,5}\b/g) || [];
+      const unique = [...new Set(matches)];
+      return unique.filter(t => KNOWN_TICKERS.has(t));
+    }
+
+    // CHATS
+    async function loadChats() {
+      try {
+        const res = await fetch('/chats', { headers: authHeader() });
+        if (res.status === 401 || res.status === 403) { logout(); return; }
+        const data = await res.json();
+        chatsData = data;
+        renderChatList(data);
+      } catch { /* ignore */ }
+    }
+
+    function _extractChatTicker(chat) {
+      if (!chat || !chat.system_prompt) return null;
+      const m = chat.system_prompt.match(/^\[([A-Z]{1,6})\]/);
+      return m ? m[1] : null;
+    }
+
+    function renderChatList(chats) {
+      const list = document.getElementById('chat-list');
+      list.innerHTML = '';
+      if (!chats.length) {
+        list.innerHTML = '<div style="padding:10px 8px;font-size:12px;color:var(--muted);line-height:1.6">No chats yet. Click New Chat to start.</div>';
+        return;
+      }
+      chats.forEach(chat => {
+        const ticker = _extractChatTicker(chat);
+        const item = document.createElement('button');
+        item.className = 'chat-item' + (chat.id === activeChatId ? ' active' : '');
+        item.dataset.id = chat.id;
+        item.innerHTML = `
+          ${ticker ? `<span class="chat-ticker-badge">${escHtml(ticker)}</span>` : ''}
+          <span class="chat-item-title">${escHtml(chat.title)}</span>
+          <button class="chat-delete-btn" title="Delete" onclick="deleteChat(event,${chat.id})">×</button>
+        `;
+        item.addEventListener('click', () => selectChat(chat.id, chat.title));
+        list.appendChild(item);
+      });
+    }
+
+    async function startNewChat() {
+      const model = localStorage.getItem('defaultModel') || DEFAULT_MODEL;
+      const userPrompt = localStorage.getItem('defaultSystemPrompt') || '';
+      const systemPrompt = PLATFORM_SYSTEM_PROMPT + (userPrompt ? '\n\n' + userPrompt : '');
+      try {
+        const res = await fetch('/chats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          body: JSON.stringify({ model, system_prompt: systemPrompt }),
+        });
+        if (!res.ok) return;
+        const chat = await res.json();
+        await loadChats();
+        selectChat(chat.id, chat.title);
+      } catch { /* ignore */ }
+    }
+
+    async function createStockChat(ticker) {
+      const model = localStorage.getItem('defaultModel') || DEFAULT_MODEL;
+      const systemPrompt = `[${ticker}] ${PLATFORM_SYSTEM_PROMPT}
+
+You are currently focused on ${ticker}. When the user asks about ${ticker}, refer to the live data visible in the Quiver stock analysis panel: current price, daily change, RSI, trend direction and duration, Cox hazard model reversal probabilities (3d/5d/7d), and the 7-day forecast. Be concise and data-driven.`;
+      try {
+        const res = await fetch('/chats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          body: JSON.stringify({ model, system_prompt: systemPrompt }),
+        });
+        if (!res.ok) return;
+        const chat = await res.json();
+        await loadChats();
+        selectChat(chat.id, chat.title, true);
+      } catch { /* ignore */ }
+    }
+
+    async function deleteChat(e, chatId) {
+      e.stopPropagation();
+      try {
+        await fetch(`/chats/${chatId}`, { method: 'DELETE', headers: authHeader() });
+        if (activeChatId === chatId) { activeChatId = null; renderNoChatSelected(); }
+        await loadChats();
+      } catch { /* ignore */ }
+    }
+
+    async function updateChatModel(model) {
+      if (!activeChatId) return;
+      try {
+        await fetch(`/chats/${activeChatId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          body: JSON.stringify({ model }),
+        });
+        const chatData = chatsData.find(c => c.id === activeChatId);
+        if (chatData) chatData.model = model;
+      } catch { /* ignore */ }
+    }
+
+    // SELECT CHAT
+    async function selectChat(chatId, title, isNewChat = false) {
+      clearAttachment();
+      activeChatId = chatId;
+      document.querySelectorAll('.chat-item').forEach(el =>
+        el.classList.toggle('active', parseInt(el.dataset.id) === chatId));
+
+      const main = document.getElementById('chat-main');
+      const chatData = chatsData.find(c => c.id === chatId);
+      chatContextTicker = _extractChatTicker(chatData) || null;
+      const chatModel = chatData?.model || localStorage.getItem('defaultModel') || DEFAULT_MODEL;
+
+      const modelOptionsHtml = MODELS.map(m =>
+        `<option value="${m.id}" ${m.id === chatModel ? 'selected' : ''}>${escHtml(m.label)}</option>`
+      ).join('');
+
+      const _activeTicker = chatContextTicker;
+      main.innerHTML = `
+        <div class="model-bar">
+          ${_activeTicker ? `<span class="active-ticker-badge">${escHtml(_activeTicker)}</span>` : ''}
+          <select class="model-select" id="model-select" onchange="updateChatModel(this.value)">
+            ${modelOptionsHtml}
+          </select>
+        </div>
+        <div class="messages-area" id="messages-area"></div>
+        <button class="scroll-bottom-btn" id="scroll-bottom-btn" onclick="scrollToBottom()" title="Scroll to bottom">↓</button>
+        <div class="input-area">
+          <div id="image-preview-bar" class="image-preview-bar" style="display:none">
+            <img id="image-preview-thumb" src="" alt="preview" style="display:none" />
+            <span id="image-preview-label" class="preview-label"></span>
+            <button class="remove-img-btn" onclick="clearAttachment()">✕</button>
+          </div>
+          <div id="panel-context-badge" style="display:none;align-items:center;gap:6px;padding:4px 10px 0;font-size:11px;color:var(--accent)">
+            <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span>
+            <span id="panel-context-badge-text"></span>
+            <button onclick="window._panelData=null;_updatePanelContextBadge()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px" title="Clear context">✕</button>
+          </div>
+          <div class="input-container" style="position:relative">
+            <input type="file" id="file-input" accept="image/*,.pdf,.csv" style="display:none" onchange="handleFileSelect(this)" />
+            <button id="attach-btn" onclick="document.getElementById('file-input').click()" title="Attach file">📎</button>
+            <textarea id="message-input" placeholder="Ask anything..." autocomplete="off" rows="1"></textarea>
+            <button id="stop-btn" onclick="stopGeneration()">■ Stop</button>
+            <button id="send-btn" onclick="sendMessage()">↑</button>
+          </div>
+          <div class="input-hint">Shift+Enter for new line · Enter to send</div>
+        </div>`;
+
+      userScrolledUp = false;
+      const messagesArea = document.getElementById('messages-area');
+      messagesArea.addEventListener('scroll', () => {
+        const isAtBottom = messagesArea.scrollHeight - messagesArea.scrollTop - messagesArea.clientHeight < 60;
+        userScrolledUp = !isAtBottom;
+        const btn = document.getElementById('scroll-bottom-btn');
+        if (btn) btn.style.display = isAtBottom ? 'none' : 'flex';
+      });
+
+      const msgInput = document.getElementById('message-input');
+      msgInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        if (e.key === 'Escape') hideSlashSuggest();
+      });
+      msgInput.addEventListener('input', () => {
+        msgInput.style.height = 'auto';
+        msgInput.style.height = Math.min(msgInput.scrollHeight, 160) + 'px';
+        if (msgInput.value.startsWith('/')) showSlashSuggest(msgInput);
+        else hideSlashSuggest();
+      });
+      msgInput.addEventListener('blur', () => { setTimeout(hideSlashSuggest, 150); });
+
+      try {
+        const res = await fetch(`/chats/${chatId}/messages`, { headers: authHeader() });
+        if (!res.ok) return;
+        const msgs = await res.json();
+        const area = document.getElementById('messages-area');
+
+        if (msgs.length === 0) {
+          const _t = chatContextTicker;
+          const _suggestions = _t ? [
+            `Should I buy ${_t} right now?`,
+            `Analyze the trend reversal risk for ${_t}`,
+            `What does the survival model say about ${_t}?`,
+            `Key support and resistance levels for ${_t}`,
+          ] : SUGGESTIONS;
+          area.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-logo">${escHtml(_t || 'Quiver')}</div>
+              <p>${_t ? `Ask anything about ${escHtml(_t)}` : 'How can I help you today?'}</p>
+              <div class="suggestion-chips">
+                ${_suggestions.map(s =>
+                  `<button class="suggestion-chip" onclick="useSuggestion(${JSON.stringify(s)})">${escHtml(s)}</button>`
+                ).join('')}
+              </div>
+            </div>`;
+          if (isNewChat) triggerGreeting(chatId);
+        } else {
+          msgs.forEach(m => {
+            if (m.role === 'user') {
+              addBubble('user', m.content);
+            } else {
+              const bubble = addBubble('bot', '');
+              if (bubble) renderBubbleMarkdown(bubble, m.content);
+            }
+          });
+        }
+      } catch { /* ignore */ }
+    }
+
+    function renderNoChatSelected() {
+      chatContextTicker = null;
+      document.getElementById('chat-main').innerHTML = `
+        <div class="no-chat-selected">
+          <div class="big-icon">💬</div>
+          <p>Create a new chat to get started</p>
+        </div>`;
+    }
+
+    // AI GREETING
+    async function triggerGreeting(chatId) {
+      const input = document.getElementById('message-input');
+      const sendBtn = document.getElementById('send-btn');
+      if (input) input.disabled = true;
+      if (sendBtn) sendBtn.disabled = true;
+      try {
+        const res = await fetch(`/chats/${chatId}/greeting`, { method: 'POST', headers: authHeader() });
+        if (!res.ok) return;
+        const botBubble = addBubble('bot', '');
+        if (!botBubble) return;
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          fullText += decoder.decode(value, { stream: true });
+          botBubble.textContent = fullText;
+          scrollMessages();
+        }
+        if (fullText) renderBubbleMarkdown(botBubble, fullText);
+      } catch { /* ignore */ } finally {
+        if (input) input.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
+        if (input) input.focus();
+      }
+    }
+
+    // Show/hide the "AI context active" badge above the chat input
+    function _updatePanelContextBadge() {
+      const badge = document.getElementById('panel-context-badge');
+      const label = document.getElementById('panel-context-badge-text');
+      if (!badge || !label) return;
+      if (window._panelData) {
+        label.textContent = `AI has live ${window._panelData.ticker} data`;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Build a structured context string from the current stock panel data
+    function _buildPanelContext() {
+      const d = window._panelData;
+      if (!d) return null;
+      const t = d.traditional || {};
+      const s = d.survival || {};
+      const tr = d.trend || {};
+      const sign = d.daily_change_pct >= 0 ? '+' : '';
+      return [
+        `[QUIVER STOCK PANEL — LIVE DATA for ${d.ticker} (${d.company}). Use these numbers directly. Do NOT ask the user to provide them.]`,
+        `Price: $${d.current_price.toFixed(2)} (${sign}${d.daily_change_pct.toFixed(2)}% today)`,
+        `Trend: ${tr.direction} for ${tr.duration_days} day(s), started at $${(tr.start_price||0).toFixed(2)}`,
+        `RSI(14): ${t.rsi} | MA7: $${t.ma7} | MA30: $${t.ma30}`,
+        `Bollinger regime: ${t.regime} | Signal: ${t.signal} | News mood: ${t.news_mood}`,
+        `7-day linear forecast: ${t.forecast_pct > 0 ? '+' : ''}${(t.forecast_pct||0).toFixed(2)}%`,
+        `Cox reversal probability — 3d: ${((s.prob_reversal_3d||0)*100).toFixed(1)}% | 5d: ${((s.prob_reversal_5d||0)*100).toFixed(1)}% | 7d: ${((s.prob_reversal_7d||0)*100).toFixed(1)}%`,
+        `Median trend survival: ~${s.median_survival_days} more day(s)`,
+        `Analysis: ${d.explanation||''}`,
+      ].join('\n');
+    }
+
+    // SEND MESSAGE
+    async function sendMessage() {
+      if (!activeChatId) return;
+      const input = document.getElementById('message-input');
+      const sendBtn = document.getElementById('send-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      if (sendBtn && sendBtn.disabled) return;
+      const message = input.value.trim();
+      if (!message && !attachedImage && !attachedFile && !attachedCSVMeta) return;
+
+      userScrolledUp = false;
+      input.value = '';
+      input.style.height = 'auto';
+      input.disabled = true;
+      sendBtn.style.display = 'none';
+      stopBtn.style.display = 'flex';
+
+      const fileLabel = attachedCSVMeta
+        ? `📊 ${attachedCSVMeta.name}`
+        : attachedFile ? `📄 ${attachedFile.name}` : (attachedImage ? `🖼 ${attachedImage.name}` : '');
+      const userDisplay = fileLabel && message ? `${fileLabel}\n${message}` : (fileLabel || message);
+      addBubble('user', userDisplay);
+
+      // Chip: CSV ticker takes priority, then typed message detection
+      const _chipTicker = attachedCSVMeta?.ticker || (message ? _detectTickers(message)[0] : null);
+      const _chipLabel  = attachedCSVMeta?.ticker
+        ? `${attachedCSVMeta.ticker} historical data — Open stock analysis?`
+        : _chipTicker ? `${_chipTicker} detected — Open stock analysis?` : null;
+      if (_chipTicker && _chipLabel) {
+        const _area = document.getElementById('messages-area');
+        if (_area) {
+          const _chip = document.createElement('div');
+          _chip.className = 'ticker-detect-chip';
+          _chip.style.cssText = 'align-self:flex-end;margin-left:auto;';
+          _chip.innerHTML = `<span class="tdc-dot"></span><span class="tdc-text">${escHtml(_chipLabel)}</span><button class="tdc-open-btn" onclick="openStockPanel('${escHtml(_chipTicker)}')">Open</button>`;
+          _area.appendChild(_chip);
+          scrollMessages();
+        }
+      }
+
+      let typingEl = addTypingIndicator();
+      stopController = new AbortController();
+
+      let botBubble = null;
+      let fullText = '';
+      let aborted = false;
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeader() },
+          body: JSON.stringify({
+            chat_id: activeChatId,
+            message: attachedCSVMeta
+              ? `[CSV: ${attachedCSVMeta.name}${attachedCSVMeta.ticker ? ' — ' + attachedCSVMeta.ticker : ''}, ${attachedCSVMeta.rows} rows, ${attachedCSVMeta.startDate} to ${attachedCSVMeta.endDate}]\n\n${attachedCSVMeta.rawText}\n\n${message || ''}`.trim()
+              : attachedFile
+                ? `[File: ${attachedFile.name}]\n\n${attachedFile.text}\n\n${message || ''}`.trim()
+                : (message || '(image)'),
+            image_data_url: attachedImage ? attachedImage.dataUrl : undefined,
+            context_ticker: chatContextTicker || attachedCSVMeta?.ticker || undefined,
+            panel_context: _buildPanelContext() || undefined,
+          }),
+          signal: stopController.signal,
+        });
+
+        if (!res.ok) {
+          if (typingEl) { typingEl.remove(); typingEl = null; }
+          const err = await res.json().catch(() => ({ detail: 'Server error' }));
+          addBubble('error', err.detail || 'Something went wrong');
+          return;
+        }
+
+        botBubble = addBubble('bot', '');
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (typingEl) { typingEl.remove(); typingEl = null; }
+            fullText += decoder.decode(value, { stream: true });
+            botBubble.textContent = fullText;
+            scrollMessages();
+          }
+        } catch (readErr) {
+          if (readErr.name === 'AbortError') aborted = true;
+          else throw readErr;
+        }
+      } catch (err) {
+        if (typingEl) { typingEl.remove(); typingEl = null; }
+        if (err.name === 'AbortError') {
+          aborted = true;
+        } else {
+          if (!botBubble) addBubble('error', 'Connection error. Is the server running?');
+        }
+      } finally {
+        if (typingEl) { typingEl.remove(); typingEl = null; }
+        clearAttachment();
+
+        if (botBubble && fullText) {
+          renderBubbleMarkdown(botBubble, fullText);
+        } else if (botBubble && !aborted) {
+          botBubble.textContent = 'No response received.';
+        }
+
+        await loadChats().catch(() => {});
+        document.querySelectorAll('.chat-item').forEach(el =>
+          el.classList.toggle('active', parseInt(el.dataset.id) === activeChatId));
+
+        input.disabled = false;
+        sendBtn.style.display = '';
+        stopBtn.style.display = 'none';
+        stopController = null;
+        input.focus();
+      }
+    }
+
+    function stopGeneration() {
+      if (stopController) { stopController.abort(); stopController = null; }
+    }
+
+    function handleFileSelect(input) {
+      const file = input.files[0];
+      input.value = '';
+      if (!file) return;
+
+      if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+        if (file.size > 10 * 1024 * 1024) { alert('PDF too large. Maximum size is 10 MB.'); return; }
+        document.getElementById('image-preview-thumb').style.display = 'none';
+        document.getElementById('image-preview-label').textContent = 'Extracting ' + file.name + '…';
+        document.getElementById('image-preview-bar').style.display = 'flex';
+        document.getElementById('attach-btn').classList.add('has-image');
+        const sendBtn = document.getElementById('send-btn');
+        if (sendBtn) sendBtn.disabled = true;
+        const formData = new FormData();
+        formData.append('file', file);
+        fetch('/files/extract-text', { method: 'POST', headers: authHeader(), body: formData })
+          .then(res => {
+            if (!res.ok) return res.json().then(d => { throw new Error(d.detail || 'Extraction failed'); });
+            return res.json();
+          }).then(data => {
+            attachedFile = { text: data.text, name: file.name, pages: data.pages };
+
+            // Extract date range from PDF text for the historical card
+            const dateRx = /\b((?:19|20)\d{2})[\/\-\.](0?[1-9]|1[0-2])[\/\-\.](0?[1-9]|[12]\d|3[01])\b|\b(0?[1-9]|[12]\d|3[01])[\/\-\.](0?[1-9]|1[0-2])[\/\-\.]((?:19|20)\d{2})\b/g;
+            const dateHits = [];
+            let m;
+            while ((m = dateRx.exec(data.text)) !== null) {
+              const raw = m[0].replace(/[\/\.]/g, '-');
+              const parts = raw.split('-').map(Number);
+              // try YYYY-MM-DD and DD-MM-YYYY
+              const d1 = new Date(parts[0] > 1000 ? `${parts[0]}-${String(parts[1]).padStart(2,'0')}-${String(parts[2]).padStart(2,'0')}` : `${parts[2]}-${String(parts[1]).padStart(2,'0')}-${String(parts[0]).padStart(2,'0')}`);
+              if (!isNaN(d1.getTime())) dateHits.push(d1);
+            }
+            dateHits.sort((a, b) => a - b);
+            const pdfStart = dateHits.length ? dateHits[0].toISOString().split('T')[0] : null;
+            const pdfEnd   = dateHits.length ? dateHits[dateHits.length - 1].toISOString().split('T')[0] : null;
+            const pdfYears = pdfStart && pdfEnd
+              ? Math.round((dateHits[dateHits.length-1] - dateHits[0]) / (365.25*86400000) * 10) / 10
+              : null;
+            const pdfTicker = file.name.replace(/\.[^.]+$/, '').toUpperCase().split(/[^A-Z]+/).find(p => KNOWN_TICKERS.has(p)) || null;
+
+            window._pdfMeta = { name: file.name, pages: data.pages, ticker: pdfTicker, startDate: pdfStart, endDate: pdfEnd, years: pdfYears };
+
+            const durLabel = pdfYears ? ` · ${pdfYears} yr${pdfYears !== 1 ? 's' : ''}` : '';
+            document.getElementById('image-preview-label').textContent = `${file.name} (${data.pages} pages${durLabel})`;
+            const msgInput = document.getElementById('message-input');
+            if (msgInput) msgInput.focus();
+          }).catch(err => {
+            clearAttachment();
+            alert('Could not extract PDF text: ' + err.message);
+          }).finally(() => { if (sendBtn) sendBtn.disabled = false; });
+        return;
+      }
+
+      if (file.name.toLowerCase().endsWith('.csv')) {
+        if (file.size > 5 * 1024 * 1024) { alert('CSV too large. Maximum size is 5 MB.'); return; }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const raw = e.target.result;
+          const lines = raw.split('\n').filter(l => l.trim());
+          const rows = lines.length - 1; // minus header
+
+          // Parse dates from first column to get range
+          const dateVals = [];
+          for (let i = 1; i < Math.min(lines.length, 9999); i++) {
+            const cell = lines[i].split(',')[0].replace(/"/g, '').trim();
+            const d = new Date(cell);
+            if (!isNaN(d.getTime())) dateVals.push(d);
+          }
+          dateVals.sort((a, b) => a - b);
+          const startDate = dateVals.length ? dateVals[0] : null;
+          const endDate   = dateVals.length ? dateVals[dateVals.length - 1] : null;
+          const years = startDate && endDate
+            ? Math.round((endDate - startDate) / (365.25 * 86400000) * 10) / 10
+            : null;
+
+          // Try to find a known ticker in the filename
+          const nameParts = file.name.replace(/\.[^.]+$/, '').toUpperCase().split(/[^A-Z]+/);
+          const ticker = nameParts.find(p => KNOWN_TICKERS.has(p)) || null;
+
+          const fmt = d => d ? d.toISOString().split('T')[0] : '?';
+          const label = [
+            ticker || 'CSV data',
+            years ? `${years} yr${years !== 1 ? 's' : ''}` : '',
+            `${rows.toLocaleString()} rows`,
+          ].filter(Boolean).join(' · ');
+
+          // Keep only first 200 rows to avoid huge messages
+          const csvSummary = lines.slice(0, 201).join('\n');
+
+          attachedCSVMeta = { ticker, startDate: fmt(startDate), endDate: fmt(endDate), rows, years, name: file.name, rawText: csvSummary };
+
+          document.getElementById('image-preview-thumb').style.display = 'none';
+          document.getElementById('image-preview-label').textContent = label;
+          document.getElementById('image-preview-bar').style.display = 'flex';
+          document.getElementById('attach-btn').classList.add('has-image');
+
+          // If we detected a ticker, auto-open stock panel with historical card
+          if (ticker) {
+            window._csvMeta = attachedCSVMeta;
+            openStockPanel(ticker);
+          }
+
+          const msgInput = document.getElementById('message-input');
+          if (msgInput) msgInput.focus();
+        };
+        reader.readAsText(file);
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) { alert('Only image, PDF, and CSV files are supported.'); return; }
+      if (file.size > 4 * 1024 * 1024) { alert('Image too large. Maximum size is 4 MB.'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        attachedImage = { dataUrl: e.target.result, name: file.name };
+        document.getElementById('image-preview-thumb').src = e.target.result;
+        document.getElementById('image-preview-thumb').style.display = '';
+        document.getElementById('image-preview-label').textContent = file.name;
+        document.getElementById('image-preview-bar').style.display = 'flex';
+        document.getElementById('attach-btn').classList.add('has-image');
+        const msgInput = document.getElementById('message-input');
+        if (msgInput) msgInput.focus();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearAttachment() {
+      attachedImage = null;
+      attachedFile = null;
+      attachedCSVMeta = null;
+      const bar = document.getElementById('image-preview-bar');
+      if (bar) bar.style.display = 'none';
+      const thumb = document.getElementById('image-preview-thumb');
+      if (thumb) thumb.style.display = '';
+      const btn = document.getElementById('attach-btn');
+      if (btn) btn.classList.remove('has-image');
+    }
+
+    // INTERACTIVE CHART ENGINE
+    const _chartRefs = {};
+
+    function _initInteractiveChart(chartId, cj) {
+      const mainEl = document.getElementById('cm-' + chartId);
+      const rsiEl  = document.getElementById('cr-' + chartId);
+      if (!mainEl || !window.LightweightCharts) return;
+
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const BG = isDark ? '#181a1b' : '#ffffff';
+      const GRID = isDark ? '#222425' : '#f1f5f9';
+      const TEXT = isDark ? '#888' : '#94a3b8';
+      const BORDER = isDark ? '#2e3030' : '#e2e8f0';
+
+      const LC = window.LightweightCharts;
+      const upClr  = cj.daily_change >= 0 ? '#009191' : '#ef4444';
+      const upFill = cj.daily_change >= 0 ? 'rgba(0,145,145,0.12)' : 'rgba(239,68,68,0.12)';
+
+      const chartOpts = {
+        width: mainEl.offsetWidth, height: mainEl.offsetHeight || 280,
+        layout: { background: { color: BG }, textColor: TEXT },
+        grid: { vertLines: { color: GRID }, horzLines: { color: GRID } },
+        crosshair: { mode: LC.CrosshairMode.Normal },
+        rightPriceScale: { borderColor: BORDER },
+        timeScale: { borderColor: BORDER, timeVisible: false, fixLeftEdge: true, fixRightEdge: true },
+        handleScroll: { mouseWheel: true, pressedMouseMove: true },
+        handleScale: { mouseWheel: true, pinch: true },
+      };
+
+      const chart = LC.createChart(mainEl, chartOpts);
+
+      const areaSeries = chart.addAreaSeries({
+        lineColor: upClr, topColor: upFill, bottomColor: 'rgba(0,0,0,0)',
+        lineWidth: 2, priceFormat: { type: 'price', precision: 2 },
+        lastValueVisible: true, priceLineVisible: true, priceLineColor: upClr,
+      });
+      areaSeries.setData(cj.ohlcv.map(d => ({ time: d.time, value: d.close })));
+
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: '#009191', downColor: '#ef4444',
+        borderUpColor: '#009191', borderDownColor: '#ef4444',
+        wickUpColor: '#009191', wickDownColor: '#ef4444',
+        priceFormat: { type: 'price', precision: 2 }, visible: false,
+      });
+      candleSeries.setData(cj.ohlcv.map(d => ({ time: d.time, open: d.open, high: d.high, low: d.low, close: d.close })));
+
+      const bbUpper = chart.addLineSeries({ color: 'rgba(90,90,180,0.45)', lineWidth: 1, lineStyle: LC.LineStyle.Solid, lastValueVisible: false, priceLineVisible: false });
+      const bbLower = chart.addLineSeries({ color: 'rgba(90,90,180,0.45)', lineWidth: 1, lineStyle: LC.LineStyle.Solid, lastValueVisible: false, priceLineVisible: false });
+      bbUpper.setData(cj.bb.filter(d => d.upper != null).map(d => ({ time: d.time, value: d.upper })));
+      bbLower.setData(cj.bb.filter(d => d.lower != null).map(d => ({ time: d.time, value: d.lower })));
+
+      const forecastSeries = chart.addLineSeries({
+        color: '#f59e0b', lineWidth: 2, lineStyle: LC.LineStyle.Dashed,
+        lastValueVisible: true, priceLineVisible: false,
+      });
+      forecastSeries.setData(cj.forecast);
+
+      const volSeries = chart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol', color: '#2a3a4a' });
+      chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+      volSeries.setData(cj.ohlcv.map(d => ({
+        time: d.time, value: d.volume,
+        color: d.close >= d.open ? 'rgba(0,145,145,0.25)' : 'rgba(239,68,68,0.25)',
+      })));
+
+      cj.support.forEach(s => areaSeries.createPriceLine({ price: s, color: 'rgba(239,68,68,0.6)', lineWidth: 1, lineStyle: LC.LineStyle.Dotted, title: 'S', axisLabelVisible: false }));
+      cj.resistance.forEach(r => areaSeries.createPriceLine({ price: r, color: 'rgba(0,145,145,0.6)', lineWidth: 1, lineStyle: LC.LineStyle.Dotted, title: 'R', axisLabelVisible: false }));
+
+      let rsiChart = null;
+      if (rsiEl) {
+        rsiChart = LC.createChart(rsiEl, {
+          width: rsiEl.offsetWidth, height: rsiEl.offsetHeight || 70,
+          layout: { background: { color: BG }, textColor: TEXT },
+          grid: { vertLines: { color: GRID }, horzLines: { color: GRID } },
+          crosshair: { mode: LC.CrosshairMode.Normal },
+          rightPriceScale: { borderColor: BORDER, scaleMargins: { top: 0.1, bottom: 0.05 } },
+          timeScale: { borderColor: BORDER, timeVisible: true, fixLeftEdge: true, fixRightEdge: true },
+          handleScroll: false, handleScale: false,
+        });
+        const rsiSeries = rsiChart.addLineSeries({
+          color: '#a29bfe', lineWidth: 1.5,
+          priceFormat: { type: 'price', precision: 1 },
+          lastValueVisible: true, priceLineVisible: false,
+        });
+        rsiSeries.setData(cj.rsi);
+        rsiSeries.createPriceLine({ price: 70, color: 'rgba(239,68,68,0.5)', lineWidth: 1, lineStyle: LC.LineStyle.Dotted });
+        rsiSeries.createPriceLine({ price: 30, color: 'rgba(0,145,145,0.5)', lineWidth: 1, lineStyle: LC.LineStyle.Dotted });
+
+        let _syncing = false;
+        chart.timeScale().subscribeVisibleLogicalRangeChange(r => {
+          if (_syncing || !r) return; _syncing = true;
+          rsiChart.timeScale().setVisibleLogicalRange(r); _syncing = false;
+        });
+        rsiChart.timeScale().subscribeVisibleLogicalRangeChange(r => {
+          if (_syncing || !r) return; _syncing = true;
+          chart.timeScale().setVisibleLogicalRange(r); _syncing = false;
+        });
+
+        const ohlcBar = document.getElementById('ohlc-' + chartId);
+        chart.subscribeCrosshairMove(param => {
+          if (!param.time || !ohlcBar) return;
+          const d = cj.ohlcv.find(x => x.time === param.time);
+          if (!d) { ohlcBar.classList.remove('visible'); return; }
+          const chgClr = d.close >= d.open ? '#009191' : '#ef4444';
+          ohlcBar.className = 'chart-ohlc-bar visible';
+          ohlcBar.innerHTML =
+            `<span>${d.time}</span>` +
+            `<span>O: <b>$${d.open.toFixed(2)}</b></span>` +
+            `<span>H: <b>$${d.high.toFixed(2)}</b></span>` +
+            `<span>L: <b>$${d.low.toFixed(2)}</b></span>` +
+            `<span>C: <b style="color:${chgClr}">$${d.close.toFixed(2)}</b></span>` +
+            `<span style="color:var(--muted)">Vol: ${d.volume >= 1e6 ? (d.volume/1e6).toFixed(1)+'M' : (d.volume/1e3).toFixed(0)+'K'}</span>`;
+        });
+
+        rsiChart.timeScale().fitContent();
+      }
+
+      const ro = new ResizeObserver(() => {
+        chart.applyOptions({ width: mainEl.offsetWidth });
+        if (rsiChart) rsiChart.applyOptions({ width: rsiEl.offsetWidth });
+      });
+      ro.observe(mainEl);
+
+      chart.timeScale().fitContent();
+      _chartRefs[chartId] = { chart, rsiChart, areaSeries, candleSeries, cj };
+    }
+
+    function _updateChartRange(chartId, period) {
+      const refs = _chartRefs[chartId];
+      if (!refs) return;
+      const { chart, rsiChart, cj } = refs;
+      const last = cj.ohlcv[cj.ohlcv.length - 1].time;
+      const d = new Date(last);
+      if (period === '1Y') {
+        chart.timeScale().fitContent();
+        if (rsiChart) rsiChart.timeScale().fitContent();
+        return;
+      }
+      if (period === '3M') d.setMonth(d.getMonth() - 3);
+      else if (period === '1M') d.setMonth(d.getMonth() - 1);
+      const from = d.toISOString().split('T')[0];
+      chart.timeScale().setVisibleRange({ from, to: last });
+      if (rsiChart) rsiChart.timeScale().setVisibleRange({ from, to: last });
+    }
+
+    // SLASH AUTOCOMPLETE
+    const SLASH_COMMANDS = [];
+
+    function showSlashSuggest(input) {
+      let box = document.getElementById('slash-suggest-box');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'slash-suggest-box';
+        box.className = 'slash-suggest';
+        input.parentElement.style.position = 'relative';
+        input.parentElement.appendChild(box);
+      }
+      const val = input.value;
+      const matches = SLASH_COMMANDS.filter(c => c.cmd.toLowerCase().startsWith(val.toLowerCase()));
+      if (!matches.length) { hideSlashSuggest(); return; }
+      box.innerHTML = matches.map(c =>
+        `<div class="slash-suggest-item" onclick="applySlashSuggest('${c.cmd}')">
+          <span class="cmd">${c.cmd}</span>
+          <span class="desc">${c.desc}</span>
+        </div>`
+      ).join('');
+      box.style.display = 'block';
+    }
+
+    function hideSlashSuggest() {
+      const box = document.getElementById('slash-suggest-box');
+      if (box) box.style.display = 'none';
+    }
+
+    function applySlashSuggest(cmd) {
+      const input = document.getElementById('message-input');
+      if (input) { input.value = cmd; input.focus(); }
+      hideSlashSuggest();
+    }
+
+    function useSuggestion(text) {
+      const input = document.getElementById('message-input');
+      if (input) { input.value = text; sendMessage(); }
+    }
+
+    // BUBBLE HELPERS
+    function addBubble(role, text) {
+      const area = document.getElementById('messages-area');
+      if (!area) return null;
+      const empty = area.querySelector('.empty-state');
+      if (empty) empty.remove();
+
+      const div = document.createElement('div');
+      div.className = `bubble ${role}`;
+      if (text) div.textContent = text;
+
+      if (role === 'bot') {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'bot-msg-wrapper';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'bot-avatar';
+
+        const bubbleContent = document.createElement('div');
+        bubbleContent.className = 'bot-bubble-content';
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'msg-copy-btn';
+        copyBtn.textContent = 'Copy';
+        copyBtn.onclick = () => {
+          const content = wrapper.dataset.rawText || div.textContent || '';
+          navigator.clipboard.writeText(content).then(() => {
+            copyBtn.textContent = 'Copied!';
+            copyBtn.classList.add('copied');
+            setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+          });
+        };
+        wrapper.dataset.rawText = '';
+        bubbleContent.appendChild(div);
+        bubbleContent.appendChild(copyBtn);
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubbleContent);
+        area.appendChild(wrapper);
+      } else {
+        area.appendChild(div);
+      }
+
+      scrollMessages();
+      return div;
+    }
+
+    function addTypingIndicator() {
+      const area = document.getElementById('messages-area');
+      if (!area) return null;
+      const div = document.createElement('div');
+      div.className = 'typing-indicator';
+      div.textContent = 'Thinking…';
+      area.appendChild(div);
+      scrollMessages();
+      return div;
+    }
+
+    function scrollMessages() {
+      if (userScrolledUp) return;
+      const area = document.getElementById('messages-area');
+      if (area) area.scrollTop = area.scrollHeight;
+    }
+
+    function scrollToBottom() {
+      userScrolledUp = false;
+      const area = document.getElementById('messages-area');
+      if (area) area.scrollTop = area.scrollHeight;
+      const btn = document.getElementById('scroll-bottom-btn');
+      if (btn) btn.style.display = 'none';
+    }
+
+    // MARKDOWN RENDERING
+    function renderBubbleMarkdown(bubble, text) {
+      try {
+        const wrapper = bubble.closest('.bot-msg-wrapper');
+        if (wrapper) wrapper.dataset.rawText = text;
+        bubble.innerHTML = DOMPurify.sanitize(marked.parse(text));
+        bubble.querySelectorAll('pre code').forEach(el => {
+          if (!el.classList.contains('hljs')) hljs.highlightElement(el);
+          const pre = el.closest('pre');
+          if (pre && !pre.querySelector('.copy-btn')) addCopyButton(pre);
+        });
+      } catch {
+        bubble.textContent = text;
+      }
+    }
+
+    function addCopyButton(preEl) {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.textContent = 'Copy';
+      btn.onclick = () => {
+        const code = preEl.querySelector('code')?.textContent || '';
+        navigator.clipboard.writeText(code).then(() => {
+          btn.textContent = '✓ Copied';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        });
+      };
+      preEl.appendChild(btn);
+    }
+
+    // UTILS
+    function authHeader() { return { Authorization: `Bearer ${token}` }; }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
+    // DEMO / STOCK ANALYSIS
+    let demoActiveTicker = null;
+
+    function renderDemoAnalysis(data) {
+      window._panelData = data;
+      _updatePanelContextBadge();
+      const body = document.getElementById('sp-body');
+
+      // Update header
+      document.getElementById('sp-ticker-name').textContent = data.ticker;
+      document.getElementById('sp-company').textContent = data.company;
+      document.getElementById('sp-price').textContent = `$${data.current_price.toFixed(2)}`;
+      const pctSign = data.daily_change_pct >= 0 ? '+' : '';
+      const chgEl = document.getElementById('sp-change');
+      chgEl.textContent = `${data.daily_change_pct >= 0 ? '▲' : '▼'} ${pctSign}${data.daily_change_pct.toFixed(2)}%`;
+      chgEl.className = `sp-change-badge ${data.daily_change_pct >= 0 ? 'up' : 'down'}`;
+
+      body.innerHTML = '';
+
+      // Historical data card - CSV upload
+      const _csv = window._csvMeta;
+      if (_csv && (!_csv.ticker || _csv.ticker === data.ticker)) {
+        const hCard = document.createElement('div');
+        hCard.className = 'sp-historical-card';
+        hCard.innerHTML = `
+          <span class="sp-historical-icon">📊</span>
+          <div>
+            <div class="sp-historical-label">Based on uploaded CSV data</div>
+            <div class="sp-historical-sub">${escHtml(_csv.name)} · ${_csv.startDate} – ${_csv.endDate}${_csv.years ? ' (' + _csv.years + ' yr' + (_csv.years !== 1 ? 's' : '') + ')' : ''} · ${_csv.rows.toLocaleString()} rows</div>
+          </div>
+          <button class="sp-historical-clear" title="Clear" onclick="window._csvMeta=null;this.closest('.sp-historical-card').remove()">×</button>
+        `;
+        body.appendChild(hCard);
+      }
+
+      // Historical data card - PDF upload
+      const _pdf = window._pdfMeta;
+      if (_pdf && (!_pdf.ticker || _pdf.ticker === data.ticker)) {
+        const pCard = document.createElement('div');
+        pCard.className = 'sp-historical-card';
+        const pSub = [
+          _pdf.pages + ' pages',
+          _pdf.startDate && _pdf.endDate ? `${_pdf.startDate} – ${_pdf.endDate}` : null,
+          _pdf.years ? `${_pdf.years} yr${_pdf.years !== 1 ? 's' : ''}` : null,
+        ].filter(Boolean).join(' · ');
+        pCard.innerHTML = `
+          <span class="sp-historical-icon">📄</span>
+          <div>
+            <div class="sp-historical-label">Based on uploaded PDF document</div>
+            <div class="sp-historical-sub">${escHtml(_pdf.name)}${pSub ? ' · ' + pSub : ''}</div>
+          </div>
+          <button class="sp-historical-clear" title="Clear" onclick="window._pdfMeta=null;this.closest('.sp-historical-card').remove()">×</button>
+        `;
+        body.appendChild(pCard);
+      }
+
+      // 1. Price Chart
+      if (data.chart_json) {
+        const chartCard = document.createElement('div');
+        chartCard.className = 'sp-chart-card';
+        const chartId = 'spc-' + Date.now();
+        chartCard.innerHTML = `
+          <div class="sp-chart-header">
+            <div class="sp-card-label" style="margin-bottom:0">Price Chart</div>
+            <div class="sp-period-bar" id="spb-${chartId}">
+              <button class="sp-period-btn active" data-period="1M">1M</button>
+              <button class="sp-period-btn" data-period="3M">3M</button>
+              <button class="sp-period-btn" data-period="1Y">1Y</button>
+            </div>
+          </div>
+          <div class="sp-chart-container" id="cm-${chartId}"></div>
+        `;
+        body.appendChild(chartCard);
+        chartCard.querySelector('.sp-period-bar').addEventListener('click', e => {
+          const btn = e.target.closest('.sp-period-btn');
+          if (!btn) return;
+          chartCard.querySelectorAll('.sp-period-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          _updateChartRange(chartId, btn.dataset.period);
+        });
+        requestAnimationFrame(() => _initInteractiveChart(chartId, data.chart_json));
+      }
+
+      // 2. "What this means" card
+      const explCard = document.createElement('div');
+      explCard.className = 'sp-explanation-card';
+      explCard.innerHTML = `
+        <div class="sp-card-label indigo">What this means</div>
+        <div class="sp-explanation-text">${escHtml(data.explanation)}</div>
+      `;
+      body.appendChild(explCard);
+
+      // 3. Three metric cards
+      const trendDir = data.trend.direction;
+      const fPct = data.traditional.forecast_pct;
+      const fSign = fPct >= 0 ? '+' : '';
+      const forecastPrice = '$' + (data.current_price * (1 + fPct / 100)).toFixed(0);
+      const rsi = data.traditional.rsi;
+      const rawMood = (data.traditional.news_mood || '').toLowerCase();
+      const sentimentLabel = rawMood === 'positive' ? 'Positive' : rawMood === 'negative' ? 'Negative' : 'Neutral';
+      const sentimentClass = rawMood === 'positive' ? 'up' : rawMood === 'negative' ? 'down' : 'neutral';
+      const sentimentDesc = rawMood === 'positive' ? 'Headlines leaning bullish' : rawMood === 'negative' ? 'Headlines leaning bearish' : 'No strong directional signal';
+
+      const metricsGrid = document.createElement('div');
+      metricsGrid.className = 'sp-metrics-grid';
+      metricsGrid.innerHTML = `
+        <div class="sp-metric-card">
+          <div class="sp-metric-label">Trend</div>
+          <div class="sp-metric-value ${trendDir === 'up' ? 'up' : 'down'}">${trendDir === 'up' ? '↑ Up' : '↓ Down'}</div>
+          <div class="sp-metric-desc">Price ${trendDir === 'up' ? 'rising' : 'falling'} over the last ${data.trend.duration_days} days</div>
+        </div>
+        <div class="sp-metric-card">
+          <div class="sp-metric-label">News Mood</div>
+          <div class="sp-metric-value ${sentimentClass}">${sentimentLabel}</div>
+          <div class="sp-metric-desc">${sentimentDesc}</div>
+        </div>
+        <div class="sp-metric-card">
+          <div class="sp-metric-label">7-Day Forecast</div>
+          <div class="sp-metric-value indigo">${forecastPrice}</div>
+          <div class="sp-metric-desc">Based on recent price pattern (${fSign}${fPct.toFixed(1)}%)</div>
+        </div>
+      `;
+      body.appendChild(metricsGrid);
+
+      // 4. Trend Reversal Risk
+      const prob7d = data.survival.prob_reversal_7d;
+      const probPct = Math.round(prob7d * 100);
+      const riskLabel = probPct < 30 ? 'Low risk' : probPct < 60 ? 'Moderate risk' : 'High risk';
+      const riskColor = probPct < 30 ? 'var(--positive)' : probPct < 60 ? 'var(--warning)' : 'var(--negative)';
+
+      const riskCard = document.createElement('div');
+      riskCard.className = 'sp-risk-card';
+      riskCard.innerHTML = `
+        <div class="sp-risk-title">Trend Reversal Risk</div>
+        <div class="sp-risk-desc">How likely is the current trend to reverse in the next 7 days?</div>
+        <div class="sp-risk-bar-wrap">
+          <div class="sp-risk-bar">
+            <div class="sp-risk-marker" style="left:${probPct}%"></div>
+          </div>
+          <div class="sp-risk-bar-labels">
+            <span style="color:var(--positive)">Low risk</span>
+            <span style="color:var(--negative)">High risk</span>
+          </div>
+        </div>
+        <div class="sp-risk-summary" style="color:${riskColor}">Currently: ${riskLabel} (${probPct}% chance of reversal)</div>
+        <div class="sp-risk-median">Trend expected to last ~${data.survival.median_survival_days} more days</div>
+      `;
+      body.appendChild(riskCard);
+
+      window._lastDemoData = data;
+    }
+  </script>
+
+</body>
+</html>
