@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Structural Design — Architectural Layers</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #f5f3ee;
+    --layer-bg: #faf9f6;
+    --card-bg: #ffffff;
+    --border: #d0ccc2;
+    --border-light: #e8e4dc;
+    --text-primary: #1a1814;
+    --text-secondary: #5a564e;
+    --text-muted: #9a9690;
+    --accent: #2d2a24;
+    --arrow: #8a8680;
+    --layer-label: #3a3630;
+    --future: #b0aca4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    padding: 48px 32px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .diagram {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .layer {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--layer-bg);
+    padding: 20px 20px 22px;
+    position: relative;
+  }
+
+  .layer-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .cards {
+    display: grid;
+    gap: 12px;
+  }
+  .cards-2 { grid-template-columns: 1fr 1fr; }
+  .cards-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 14px 16px;
+  }
+
+  .card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .card ul li {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .card ul li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: var(--text-muted);
+  }
+
+  .connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 0;
+    gap: 2px;
+  }
+
+  .connector-line {
+    width: 1px;
+    height: 18px;
+    background: var(--arrow);
+  }
+
+  .connector-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 0 8px;
+  }
+
+  .connector-arrow {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid var(--arrow);
+  }
+
+  .future-note {
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--future);
+    letter-spacing: 0.08em;
+    font-style: italic;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Structural Design of the Model — Architectural Layers</h1>
+
+<div class="diagram">
+
+  <!-- Layer 1 -->
+  <div class="layer">
+    <div class="layer-label">Layer 1 — Data Input</div>
+    <div class="cards cards-2">
+      <div class="card">
+        <h3>Structured Data</h3>
+        <ul>
+          <li>Historical stock prices</li>
+          <li>Trading volumes</li>
+          <li>Technical indicators (MA, RSI, momentum)</li>
+          <li>Economic indicators (GDP, interest rates)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Unstructured Data</h3>
+        <ul>
+          <li>Financial news articles</li>
+          <li>Earnings announcements</li>
+          <li>Social media content</li>
+          <li>Analyst commentary</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">
+    <div class="connector-line"></div>
+    <div class="connector-label">Preprocessing &amp; Transformation</div>
+    <div class="connector-line"></div>
+    <div class="connector-arrow"></div>
+  </div>
+
+  <!-- Layer 2 -->
+  <div class="layer">
+    <div class="layer-label">Layer 2 — Preprocessing &amp; Feature Engineering (KDD / CRISP-DM)</div>
+    <div class="cards cards-3">
+      <div class="card">
+        <h3>Structured Pipeline</h3>
+        <ul>
+          <li>Data cleaning &amp; normalisation</li>
+          <li>Feature selection &amp; engineering</li>
+          <li>Time-series segmentation</li>
+          <li>Trend labelling</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>NLP Pipeline</h3>
+        <ul>
+          <li>Text cleaning &amp; tokenisation</li>
+          <li>Sentiment classification</li>
+          <li>Event extraction</li>
+          <li>Sentiment score generation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Data Fusion</h3>
+        <ul>
+          <li>Align structured &amp; sentiment data by timestamp</li>
+          <li>Merge into unified feature set</li>
+          <li>Prepare training &amp; test datasets</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">
+    <div class="connector-line"></div>
+    <div class="connector-label">Modeling</div>
+    <div class="connector-line"></div>
+    <div class="connector-arrow"></div>
+  </div>
+
+  <!-- Layer 3 -->
+  <div class="layer">
+    <div class="layer-label">Layer 3 — Modeling</div>
+    <div class="cards cards-3">
+      <div class="card">
+        <h3>Traditional Signal Scorer</h3>
+        <ul>
+          <li>RSI, MA7 / MA30 composite scoring</li>
+          <li>Linear regression forecast</li>
+          <li>Buy / Hold / Sell direction</li>
+          <li>Input: fused structured features</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Cox PH Survival Model</h3>
+        <ul>
+          <li>Time-to-event modelling</li>
+          <li>Hazard &amp; survival function estimation</li>
+          <li>Time-to-reversal prediction</li>
+          <li>Input: detected trend + market features</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>LLM Output Module</h3>
+        <ul>
+          <li>Receives Cox + signal outputs</li>
+          <li>Generates natural language insight</li>
+          <li>Contextual stock analysis chat</li>
+          <li>Input: statistical model results</li>
+        </ul>
+      </div>
+    </div>
+    <div class="future-note">· · · Future modelling components · · ·</div>
+  </div>
+
+  <div class="connector">
+    <div class="connector-line"></div>
+    <div class="connector-label">Evaluation</div>
+    <div class="connector-line"></div>
+    <div class="connector-arrow"></div>
+  </div>
+
+  <!-- Layer 4 -->
+  <div class="layer">
+    <div class="layer-label">Layer 4 — Evaluation</div>
+    <div class="cards cards-3">
+      <div class="card">
+        <h3>Demonstration</h3>
+        <ul>
+          <li>Working prototype walkthrough</li>
+          <li>GOOGL reference stock scenario</li>
+          <li>Component-by-component trace</li>
+          <li>Browser output screenshots</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Verification</h3>
+        <ul>
+          <li>Non-functional requirement checks</li>
+          <li>Transparency &amp; interpretability audit</li>
+          <li>Reproducibility (KDD / CRISP-DM)</li>
+          <li>Security &amp; usability review</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Validation</h3>
+        <ul>
+          <li>Functional requirement fulfilment</li>
+          <li>Four-layer architecture check</li>
+          <li>Qualitative expert assessment</li>
+          <li>Scenario-based testing results</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">
+    <div class="connector-line"></div>
+    <div class="connector-label">Signal Generation</div>
+    <div class="connector-line"></div>
+    <div class="connector-arrow"></div>
+  </div>
+
+  <!-- Layer 5 -->
+  <div class="layer">
+    <div class="layer-label">Layer 5 — Output</div>
+    <div class="cards cards-3">
+      <div class="card">
+        <h3>Signal Synthesis</h3>
+        <ul>
+          <li>Combine LSTM direction output with survival duration estimate</li>
+          <li>Generate unified time-specific trading signal</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Trading Signal</h3>
+        <ul>
+          <li>Trend direction (upward / downward)</li>
+          <li>Expected duration before reversal</li>
+          <li>Buy / sell recommendation with timing</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Interpretability</h3>
+        <ul>
+          <li>Feature contribution display</li>
+          <li>Survival curve visualisation</li>
+          <li>Human-readable signal explanation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
